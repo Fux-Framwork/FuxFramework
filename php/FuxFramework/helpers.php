@@ -266,12 +266,12 @@ function send_email($to, $sub, $mes, $from)
     $mail = new PHPMailer;
     $mail->isSMTP();
     $mail->SMTPDebug = 0;
-    $mail->Host = 'mail.bookizon.it';
+    $mail->Host = 'mail.example.it';
     $mail->Port = 25;
     $mail->SMTPAuth = true;
-    $mail->Username = 'noreply@bookizon.it';
-    $mail->Password = '}njEl3Dh@H9G';
-    $mail->setFrom('noreply@bookizon.it', $from);
+    $mail->Username = 'noreply@example.it';
+    $mail->Password = '';
+    $mail->setFrom('noreply@example.it', $from);
     $mail->addReplyTo('', '');
     $mail->addAddress($to);
     $mail->Subject = $sub;
