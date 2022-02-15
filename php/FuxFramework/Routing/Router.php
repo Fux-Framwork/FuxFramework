@@ -119,20 +119,25 @@ class Router
 
         $middlewares = $validRoute->middleware;
         $numMiddlewares = count($middlewares);
-        if ($numMiddlewares) {
-            for ($i = 0; $i < $numMiddlewares; $i++) {
-                //Si fa una chain di middleware fino al penultimo. L'ultimo punta alla closure della route
-                $validRoute->middleware[$i]->setRequest($this->request);
-                if ($i < $numMiddlewares - 1) {
-                    $validRoute->middleware[$i]->setNext($validRoute->middleware[$i + 1]);
-                } else {
-                    $validRoute->middleware[$i]->setNext($validRoute->closure);
-                }
 
+        try {
+            if ($numMiddlewares) {
+                for ($i = 0; $i < $numMiddlewares; $i++) {
+                    //Si fa una chain di middleware fino al penultimo. L'ultimo punta alla closure della route
+                    $validRoute->middleware[$i]->setRequest($this->request);
+                    if ($i < $numMiddlewares - 1) {
+                        $validRoute->middleware[$i]->setNext($validRoute->middleware[$i + 1]);
+                    } else {
+                        $validRoute->middleware[$i]->setNext($validRoute->closure);
+                    }
+
+                }
+                $output = $validRoute->middleware[0]->handle();
+            } else {
+                $output = call_user_func_array($validRoute->closure, array($this->request));
             }
-            $output = $validRoute->middleware[0]->handle();
-        } else {
-            $output = call_user_func_array($validRoute->closure, array($this->request));
+        } catch (\Exception $e) {
+            $output = \Fux\Exceptions\Handler::handle($this->request, $e);
         }
 
         if ($output instanceof FuxResponse) {

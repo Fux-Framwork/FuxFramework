@@ -2,10 +2,14 @@
 
 namespace Fux;
 
-class FuxResponse
+class FuxResponse implements \JsonSerializable
 {
-    private $response = [];
-    private $canBePretty = false;
+
+    const ERROR = 'ERROR';
+    const SUCCESS = 'OK';
+
+    protected $response = [];
+    protected $canBePretty = false;
 
     public function __construct($status = null, $message = null, $data = null, $canBePretty = false)
     {
@@ -22,12 +26,12 @@ class FuxResponse
 
     public function isOk()
     {
-        return $this->response['status'] == "OK";
+        return $this->response['status'] == self::SUCCESS;
     }
 
     public function isError()
     {
-        return $this->response['status'] == "ERROR";
+        return $this->response['status'] == self::ERROR;
     }
 
     public function isPretty()
@@ -63,5 +67,10 @@ class FuxResponse
     public function setStatus($status)
     {
         $this->response['status'] = $status;
+    }
+
+    public function jsonSerialize()
+    {
+        return $this->response;
     }
 }

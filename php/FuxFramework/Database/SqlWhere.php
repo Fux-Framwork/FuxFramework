@@ -9,7 +9,7 @@ class SqlWhere
      * SqlWhere constructor.
      * @param $fields Array {<fieldName>:<fieldValue>}
      */
-    public function __construct($fields)
+    public function __construct($fields = [])
     {
         $this->fields = $fields;
     }
@@ -31,7 +31,7 @@ class SqlWhere
         foreach($this->fields as $name => $value){
             $fieldsWhere[] = "$name = '$value'";
         }
-        $where .= "(".implode(" AND ", $fieldsWhere).")";
+        if ($fieldsWhere) $where .= "(".implode(" AND ", $fieldsWhere).")";
 
         foreach($this->custom as $customWhere){
             if ($where != ""){
