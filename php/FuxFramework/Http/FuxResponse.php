@@ -7,6 +7,7 @@ class FuxResponse implements \JsonSerializable
 
     const ERROR = 'ERROR';
     const SUCCESS = 'OK';
+    const CONFIRM = 'CONFIRM';
 
     protected $response = [];
     protected $canBePretty = false;
@@ -32,6 +33,11 @@ class FuxResponse implements \JsonSerializable
     public function isError()
     {
         return $this->response['status'] == self::ERROR;
+    }
+
+    public function isConfirm()
+    {
+        return $this->response['status'] == self::CONFIRM;
     }
 
     public function isPretty()
@@ -72,5 +78,18 @@ class FuxResponse implements \JsonSerializable
     public function jsonSerialize()
     {
         return $this->response;
+    }
+
+    /**
+     * @param $array = [
+     *      "status" => "ERROR" | "OK", //Optional
+     *      "message" => "ab cd", //Optional
+     *      "data" => mixed //Optional
+     * ]
+     * @return FuxResponse
+     */
+    public static function fromArray($array)
+    {
+        return new FuxResponse($array["status"] ?? null, $array["message"] ?? null, $array["data"] ?? null);
     }
 }

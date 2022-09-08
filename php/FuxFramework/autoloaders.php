@@ -96,3 +96,19 @@ spl_autoload_register(function ($className) {
         }
     }
 });
+
+
+/* ##########################
+ * Autoloader per i file del framework Fux
+ * ########################## */
+spl_autoload_register(function ($className) {
+    if (strpos($className, "Fux\\") !== false) {
+        $relativeClassPath = str_replace("Fux/", "", str_replace("\\", "/", $className));
+        $filePath = __DIR__ . "/../../php/FuxFramework/$relativeClassPath.php";
+        if (file_exists($filePath)) {
+            include_once $filePath;
+        } else {
+            throw new Exception("FuxAutoloaderException: Cannot autoload app class $className");
+        }
+    }
+});

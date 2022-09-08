@@ -1,5 +1,41 @@
 <?php
-if (session_status() == PHP_SESSION_NONE) session_start();
+use Fux\DB;
+
+require_once __DIR__ . '/../../vendor/autoload.php';
+require_once __DIR__ . '/Http/FuxResponse.php';
+require_once __DIR__ . '/Middleware/FuxMiddleware.php';
+require_once __DIR__ . '/Events/EventManager.php';
+require_once __DIR__ . '/Exceptions/IFuxException.php';
+require_once __DIR__ . '/Exceptions/FuxException.php';
+require_once __DIR__ . '/Exceptions/Handler.php';
+require_once __DIR__ . '/helpers.php';
+
+foreach (glob(__DIR__ . '/../../config/*.php') as $filename) {
+    require_once $filename;
+}
+
+require_once __DIR__ . '/autoloaders.php';
+require_once __DIR__ . '/Service/FuxServiceProvider.php';
+require_once __DIR__ . '/Database/FuxQuery.php';
+require_once __DIR__ . '/Database/FuxQueryBuilder.php';
+require_once __DIR__ . '/Database/FuxQueryBuilderIterator.php';
+require_once __DIR__ . '/Database/FuxModel.php';
+require_once __DIR__ . '/Database/Model/ModelCollection.php';
+require_once __DIR__ . '/Database/Model/Relationship.php';
+require_once __DIR__ . '/Database/Model/Model.php';
+require_once __DIR__ . '/Database/DB.php';
+require_once __DIR__ . '/View/FuxView.php';
+require_once __DIR__ . '/View/FuxViewComposerManager.php';
+require_once __DIR__ . '/FuxDataModel.php';
+require_once __DIR__ . '/Events/EventManager.php';
+
+
+if (defined("SESSION_HANDLER_TYPE") && SESSION_HANDLER_TYPE == 'mysql'){
+    require_once __DIR__ . '/Http/Session/MysqlSessionHandler.php';
+    new \Fux\Http\Sessions\MysqlSessionHandler();
+}
+session_start();
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 ini_set("mysql.trace_mode", "0");
@@ -9,32 +45,44 @@ $_POST_SANITIZED = false;
 $_GET_SANITIZED = false;
 $_REQUEST_SANITIZED = false;
 
-use Fux\DB;
-
-require_once __DIR__ . '/../../vendor/autoload.php';
-require_once __DIR__ . '/Http/FuxResponse.php';
-require_once __DIR__ . '/Events/EventManager.php';
-require_once __DIR__ . '/helpers.php';
+$_FUX_DEBUG_START_TIME = hrtime(true);
 
 /* ##########################
  * Env configuration bootstrapping
  * ########################## */
 
-foreach (glob(__DIR__ . '/../../config/*.php') as $filename) {
-    require_once $filename;
-}
 
-require_once __DIR__ . '/autoloaders.php';
-require_once __DIR__ . '/Service/FuxServiceProvider.php';
-require_once __DIR__ . '/Database/FuxModel.php';
-require_once __DIR__ . '/Database/DB.php';
-require_once __DIR__ . '/View/FuxView.php';
-require_once __DIR__ . '/View/FuxViewComposerManager.php';
-require_once __DIR__ . '/FuxDataModel.php';
-require_once __DIR__ . '/Events/EventManager.php';
 
 bootstrapServiceProviders();
 register_shutdown_function("disposeServiceProviders");
+register_shutdown_function(function () use ($_FUX_DEBUG_START_TIME) {
+    $_FUX_DEBUG_END_TIME = hrtime(true);
+    $ip = isset($_SERVER['HTTP_CF_CONNECTING_IP']) ? $_SERVER['HTTP_CF_CONNECTING_IP'] : $_SERVER['REMOTE_ADDR'];
+    $data = $_SERVER['REQUEST_METHOD'] === 'GET' ? $_GET : $_POST;
+    // Post data / Cookies / Files
+    if (isset($data) && count($data)) {
+        if (isset($data['password'])) {
+            $data['password'] = "***HIDDEN***";
+        }
+        if (isset($data['password2'])) {
+            $data['password2'] = "***HIDDEN***";
+        }
+    }
+    try {
+        (new LogTimingModel())->save([
+            "method" => $_SERVER['REQUEST_METHOD'],
+            "url" => $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'],
+            "user_agent" => $_SERVER['HTTP_USER_AGENT'] ?? '',
+            "body" => DB::ref()->real_escape_string(json_encode($data ?? [])),
+            "session" => DB::ref()->real_escape_string(json_encode($_SESSION ?? [])),
+            "execution_time" => ($_FUX_DEBUG_END_TIME - $_FUX_DEBUG_START_TIME) / 1e+6,
+            "ip" => $ip
+        ]);
+
+    } catch (Exception $e) {
+        print_r($e->getMessage());
+    }
+});
 
 
 /* ##########################
@@ -51,8 +99,8 @@ $hrs = floor($mins / 60);
 $mins -= $hrs * 60;
 $offset = sprintf('%+d:%02d', $hrs * $sgn, $mins);
 
-if (DB_ENABLE) {
-    DB::ref()->set_charset("utf8");
-    DB::ref()->query("SET SESSION sql_mode = 'ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'");
-    DB::ref()->query("SET time_zone='$offset'");
-}
+DB::ref()->set_charset("utf8");
+DB::ref()->query("SET SESSION sql_mode = 'ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'");
+DB::ref()->query("SET time_zone='$offset'");
+
+

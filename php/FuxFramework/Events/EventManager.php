@@ -11,7 +11,7 @@ class EventManager
 
     public static function subscribe(string $eventName, callable $callback){
         if (!isset(self::$eventsMap[$eventName])){
-            self::$eventsMap[$eventName] = array();
+            self::$eventsMap[$eventName] = [];
         }
         self::$eventsMap[$eventName][] = $callback;
     }
@@ -19,7 +19,7 @@ class EventManager
     public static function trigger(string $eventName, $param){
         if (isset(self::$eventsMap[$eventName])){
             foreach(self::$eventsMap[$eventName] as $cb){
-                call_user_func($cb, $param);
+                call_user_func($cb, $param, $eventName);
             }
         }
     }

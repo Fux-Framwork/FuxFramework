@@ -2,7 +2,10 @@
 
 namespace Fux;
 
+use Fux\Database\Model\Model;
 use FuxModel;
+use Fux\Database\FuxQuery;
+use PHPMailer\PHPMailer\Exception;
 
 class FuxQueryBuilder
 {
@@ -10,10 +13,12 @@ class FuxQueryBuilder
     private const TYPE_SELECT = 'select';
     private const TYPE_UPDATE = 'update';
     private const TYPE_DELETE = 'delete';
+    private const TYPE_INSERT = 'insert';
     private $queryType = '';
     private $selectables = [];
     private $table = "";
     private $setClause = [];
+    private $insertValues = []; // = [[0 => "fieldname", 1 => "fieldValue"]]
     private $joins = []; // => Array of ["type"=>"left", "table"=>"", "on"=>"where"]
     private $whereClause = [];
     private $groupBy = [];
@@ -22,6 +27,8 @@ class FuxQueryBuilder
     private $offset;
     private $havingClause = [];
     private $returnFoundRows = false;
+    private $fieldStringificationDisabled = false;
+    private $useIgnoreClause = false;
 
     public function select($data)
     {
@@ -46,6 +53,26 @@ class FuxQueryBuilder
         return $this;
     }
 
+    /**
+     * @param FuxQueryBuilder | \Fux\Database\FuxQuery | FuxModel | Model |string $table
+     */
+    public function from($table, $as = null)
+    {
+        $table = self::tableRefToString($table);
+        $this->table = $table;
+        if ($as) $this->table .= " as $as";
+        return $this;
+    }
+
+    public function delete($from, $as = null)
+    {
+        $this->queryType = self::TYPE_DELETE;
+        $from = self::tableRefToString($from);
+        $this->table = $from;
+        if ($as) $this->table .= " as $as";
+        return $this;
+    }
+
     public function update($table)
     {
         $this->queryType = self::TYPE_UPDATE;
@@ -58,14 +85,6 @@ class FuxQueryBuilder
     {
         $field = self::getStringfiedFieldName($field);
         $this->setClause[] = $value === null ? "$field = NULL" : ($valueUseColumns ? "$field = $value" : "$field = '$value'");
-        return $this;
-    }
-
-    public function delete($from)
-    {
-        $this->queryType = self::TYPE_DELETE;
-        $from = self::tableRefToString($from);
-        $this->table = $from;
         return $this;
     }
 
@@ -84,14 +103,27 @@ class FuxQueryBuilder
         return $this;
     }
 
-    /**
-     * @param string | FuxModel $table
-     */
-    public function from($table, $as = null)
+    public function insert($into, $ignore = false)
     {
-        $table = self::tableRefToString($table);
-        $this->table = $table;
-        if ($as) $this->table .= " as $as";
+        $this->queryType = self::TYPE_INSERT;
+        $t = self::tableRefToString($into);
+        $this->table = $t;
+        $this->useIgnoreClause = $ignore;
+        return $this;
+    }
+
+    public function value($field, $value, $valueUseColumns = false)
+    {
+        $field = self::getStringfiedFieldName($field);
+        $this->insertValues[] = $value === null ? [$field, null] : ($valueUseColumns ? [$field, $value] : [$field, "'$value'"]);
+        return $this;
+    }
+
+    public function massiveValues($data, $valueUseColumns = false)
+    {
+        foreach ($data as $k => $v) {
+            $this->value($k, $v, $valueUseColumns);
+        }
         return $this;
     }
 
@@ -103,6 +135,11 @@ class FuxQueryBuilder
     public function leftJoin($with, $on, $as = null)
     {
         return $this->_join("LEFT", $with, $on, $as);
+    }
+
+    public function crossJoin($with, $as = null)
+    {
+        return $this->_join("CROSS", $with, null, $as);
     }
 
     public function rightJoin($with, $on, $as = null)
@@ -132,6 +169,20 @@ class FuxQueryBuilder
     {
         $field = self::getStringfiedFieldName($field);
         $this->whereClause[] = $value === null ? "$field IS NULL" : "$field = '$value'";
+        return $this;
+    }
+
+    public function whereLike($field, $value)
+    {
+        $field = self::getStringfiedFieldName($field);
+        $this->whereClause[] = "$field LIKE '$value'";
+        return $this;
+    }
+
+    public function whereNotLike($field, $value)
+    {
+        $field = self::getStringfiedFieldName($field);
+        $this->whereClause[] = "$field NOT LIKE '$value'";
         return $this;
     }
 
@@ -192,6 +243,13 @@ class FuxQueryBuilder
         return $this;
     }
 
+    public function whereNotExists($expression)
+    {
+        $expression = self::tableRefToString($expression);
+        $this->whereClause[] = "NOT EXISTS($expression)";
+        return $this;
+    }
+
     public function whereBetween($field, $from, $to)
     {
         $field = self::getStringfiedFieldName($field);
@@ -217,7 +275,8 @@ class FuxQueryBuilder
     {
         foreach ($fields as $fieldName => $wantedValue) {
             $fieldName = self::getStringfiedFieldName($fieldName);
-            $this->whereClause[] = "$fieldName = '$wantedValue'";
+            $this->whereClause[] = $wantedValue === null ? "$fieldName IS NULL" : "$fieldName = '$wantedValue'";;
+
         }
         return $this;
     }
@@ -271,6 +330,12 @@ class FuxQueryBuilder
     public function useFoundRows($use)
     {
         $this->returnFoundRows = $use;
+        return $this;
+    }
+
+    public function unsafe_setFieldStringificationDisable($disable)
+    {
+        $this->fieldStringificationDisabled = $disable;
         return $this;
     }
 
@@ -342,6 +407,27 @@ class FuxQueryBuilder
         return $query;
     }
 
+    private function _getInsertFieldsNameParts()
+    {
+        $query = [];
+        if (!empty($this->insertValues)) {
+            $query[] = "(";
+            $query[] = join(', ', array_column($this->insertValues, 0));
+            $query[] = ")";
+        }
+        return $query;
+    }
+    private function _getInsertFieldsValueParts()
+    {
+        $query = [];
+        if (!empty($this->insertValues)) {
+            $query[] = "(";
+            $query[] = join(', ', array_column($this->insertValues, 1));
+            $query[] = ")";
+        }
+        return $query;
+    }
+
     private function _getQueryPartsForUpdate()
     {
         $query = [];
@@ -370,6 +456,19 @@ class FuxQueryBuilder
         return $query;
     }
 
+    private function _getQueryPartsForInsert()
+    {
+        $query = [];
+        $query[] = $this->useIgnoreClause ? "INSERT IGNORE INTO" : "INSERT INTO";
+        $query[] = $this->table;
+
+        $query = array_merge($query, $this->_getInsertFieldsNameParts());
+        $query[] = "VALUES";
+        $query = array_merge($query, $this->_getInsertFieldsValueParts());
+
+        return $query;
+    }
+
     private function _getQueryPartsForSelect()
     {
         $query[] = "SELECT";
@@ -392,13 +491,13 @@ class FuxQueryBuilder
         if (!empty($this->joins)) {
             foreach ($this->joins as $join) {
                 $query[] = "$join[type] JOIN";
-                if ($join['table'] instanceof FuxQuery) {
+                if ($join['table'] instanceof Database\FuxQuery) {
                     $query[] = "($join[table])";
                 } else {
                     $query[] = $join['table'];
                 }
                 if ($join['as']) $query[] = " as $join[as]";
-                $query[] = "ON $join[on]";
+                if ($join['on']) $query[] = "ON $join[on]";
             }
         }
 
@@ -423,16 +522,22 @@ class FuxQueryBuilder
             case self::TYPE_DELETE:
                 $query = $this->_getQueryPartsForDelete();
                 break;
+            case self::TYPE_INSERT:
+                $query = $this->_getQueryPartsForInsert();
+                break;
         }
-        return new FuxQuery(join(' ', $query));
+        return new Database\FuxQuery(join(' ', $query));
     }
 
-    public function execute($returnFetchAll = true)
+    public function execute($returnFetchAll = true, $as = null)
     {
         $sql = $this->result();
 
         if ($this->returnFoundRows && $returnFetchAll) {
             $results = DB::multiQuery([$sql, "SELECT FOUND_ROWS() as total"]) or die(DB::ref()->error . "SQL: $sql");
+            if ($as){
+                foreach($results[0] as &$r) $r = new $as($r);
+            }
             return [
                 'rows' => $results[0],
                 'total' => $results[1][0]['total']
@@ -441,7 +546,11 @@ class FuxQueryBuilder
 
         $q = DB::ref()->query($sql) or die(DB::ref()->error . "SQL: $sql");
         if ($returnFetchAll && $this->queryType === self::TYPE_SELECT) {
-            return $q->fetch_all(MYSQLI_ASSOC);
+            $rows = $q->fetch_all(MYSQLI_ASSOC);
+            if ($as){
+                foreach($rows as &$r) $r = new $as($r);
+            }
+            return $rows;
         }
         return $q;
     }
@@ -464,6 +573,7 @@ class FuxQueryBuilder
 
     private function getStringfiedFieldName($field)
     {
+        if ($this->fieldStringificationDisabled) return $field;
         $fieldParts = explode(".", $field);
         if (count($fieldParts) > 1) {
             return "$fieldParts[0].`$fieldParts[1]`";
@@ -475,7 +585,7 @@ class FuxQueryBuilder
     /**
      * Trasforma una tabella di un qualunque formato in una stringa usabile nella query SQL finale
      *
-     * @param FuxQueryBuilder | FuxQuery | FuxModel | string
+     * @param FuxQueryBuilder | \Fux\Database\FuxQuery | FuxModel | string
      */
     private function tableRefToString($table)
     {
@@ -483,24 +593,12 @@ class FuxQueryBuilder
             return "(" . $table->result() . ")";
         } elseif ($table instanceof FuxModel) {
             return $table->getTableName();
-        } elseif ($table instanceof FuxQuery) {
+        } elseif ($table instanceof Database\FuxQuery) {
             return "(" . $table . ")";
+        } elseif(class_exists($table)){
+            return $table::getTableName();
         }
         return $table;
     }
 }
 
-class FuxQuery
-{
-    private $sql = "";
-
-    public function __construct($sql)
-    {
-        $this->sql = $sql;
-    }
-
-    public function __toString()
-    {
-        return $this->sql;
-    }
-}

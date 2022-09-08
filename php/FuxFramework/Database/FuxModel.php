@@ -200,14 +200,14 @@ class FuxModel
     public function delete($pk_value, $forceDelete = false)
     {
         $whereClause = [];
-        if (is_array($pk_value)){
-            foreach($pk_value as $field => $value){
+        if (is_array($pk_value)) {
+            foreach ($pk_value as $field => $value) {
                 $whereClause[] = "$field = '$value'";
             }
-        }else {
-            $whereClause[] = $this->pk_field[0] . " = '$pk_value'";
+        } else {
+            $whereClause[] = "`".$this->pk_field[0]."`" . " = '$pk_value'";
         }
-        return $this->deleteWhere(implode(" AND ",$whereClause), $forceDelete);
+        return $this->deleteWhere(implode(" AND ", $whereClause), $forceDelete);
     }
 
     public function deleteWhere($where, $forceDelete = false)
@@ -223,6 +223,7 @@ class FuxModel
         $q = DB::ref()->query($sql) or die(DB::ref()->error);
         return DB::ref()->affected_rows || DB::ref()->errno == 0;
     }
+
 
     public function getRecord($pk_value, $neededFields = null)
     {
@@ -254,29 +255,29 @@ class FuxModel
         $where = [];
         foreach ($this->pk_field as $pk) {
             if (isset($pk_values[$pk])) {
-                $where[] = "$pk = '" . $pk_values[$pk] . "'";
+                $where[] = "`$pk` = '" . $pk_values[$pk] . "'";
             }
         }
         $where = implode(" AND ", $where);
         return $this->getWhere($where, $neededFields);
     }
 
-    public function getWhere($SQL_WHERE, $neededFields = null)
+    public function getWhere($where, $neededFields = null)
     {
-        global $mysqli;
+        $qb = (new \Fux\FuxQueryBuilder())->select($neededFields ?: "*")->from($this->table_name);
+        if ($neededFields) $qb->select($neededFields);
 
-        if ($SQL_WHERE instanceof SqlWhere) {
-            $SQL_WHERE = (string)$SQL_WHERE;
+        if ($where instanceof SqlWhere) {
+            $where = (string)$where;
+            $qb->SQLWhere($where);
+        } elseif (is_array($where)) {
+            $qb->massiveWhere($where);
+        } else {
+            $qb->SQLWhere($where);
         }
 
-        $sql = "SELECT * FROM " . $this->table_name . " WHERE $SQL_WHERE LIMIT 1";
-        $q = DB::ref()->query($sql) or die(DB::ref()->error . " <br>QUERY:" . $sql);
-        if ($row = $q->fetch_assoc()) {
-            $this->loadedData = $row;
-            if (is_array($neededFields)) $row = array_intersect_key($row, array_flip($neededFields)); //Toglie a $row tutti i campi NON presenti in $neededFields
-            return $row;
-        }
-        return false;
+        $row = $qb->first();
+        return $row ?: null;
     }
 
     public function listRecords($neededFields = null)
@@ -356,11 +357,11 @@ class FuxModel
         $table1NeededFields = $table1NeededFields === "*" ? $this->getTableFields() : $table1NeededFields;
         $table2NeededFields = $table2NeededFields === "*" ? $dtm->getTableFields() : $table2NeededFields;
 
-        $table1NeededFields = array_map(function($field) use($table1) {
+        $table1NeededFields = array_map(function ($field) use ($table1) {
             return "$table1.$field";
         }, $table1NeededFields);
 
-        $table2NeededFields = array_map(function($field) use($table2) {
+        $table2NeededFields = array_map(function ($field) use ($table2) {
             return "$table2.$field";
         }, $table2NeededFields);
 
@@ -382,7 +383,7 @@ class FuxModel
         $where = str_replace("{{t1}}", $table1, $where);
         $where = str_replace("{{t2}}", $table2, $where);
 
-        $fields = implode(",",array_merge($table1NeededFields, $table2NeededFields));
+        $fields = implode(",", array_merge($table1NeededFields, $table2NeededFields));
 
         $sql = "SELECT $fields FROM $table1
                 $joinType JOIN $table2 ON $onClause
@@ -462,7 +463,7 @@ class FuxModel
             }
         }
         $ignore = $ignoreClause ? "IGNORE" : "";
-        $sql = "INSERT $ignore INTO $table (" . implode(",", $sqlField) . ") VALUES (" . implode(",", $sqlValue) . ")";
+        $sql = "INSERT $ignore INTO $table (`" . implode("`,`", $sqlField) . "`) VALUES (" . implode(",", $sqlValue) . ")";
         if ($execute) {
             $q = DB::ref()->query($sql);
             if (DB::ref()->errno == MYSQL_UNKNOWN_FIELD_ERROR && $updateFieldOnExecute) {

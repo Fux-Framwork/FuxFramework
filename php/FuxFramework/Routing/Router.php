@@ -3,12 +3,16 @@
 namespace Fux;
 
 use Fux\FuxResponse;
+use LogModel;
 
 include_once __DIR__ . '/../Middleware/IMiddleware.php';
 include_once 'Request.php';
 
 class Router
 {
+
+    public static $currentRoute = null;
+
     private $request;
 
     private $commonMiddlewares = [];
@@ -117,10 +121,13 @@ class Router
             return;
         }
 
+        Router::$currentRoute = clone $validRoute;
+
         $middlewares = $validRoute->middleware;
         $numMiddlewares = count($middlewares);
 
         try {
+
             if ($numMiddlewares) {
                 for ($i = 0; $i < $numMiddlewares; $i++) {
                     //Si fa una chain di middleware fino al penultimo. L'ultimo punta alla closure della route
@@ -136,11 +143,32 @@ class Router
             } else {
                 $output = call_user_func_array($validRoute->closure, array($this->request));
             }
-        } catch (\Exception $e) {
+
+        }catch(\Exception $e){
             $output = \Fux\Exceptions\Handler::handle($this->request, $e);
         }
 
         if ($output instanceof FuxResponse) {
+            /*
+             * LOGGING AREA
+             * */
+
+            $ip = isset($_SERVER['HTTP_CF_CONNECTING_IP']) ? $_SERVER['HTTP_CF_CONNECTING_IP'] : $_SERVER['REMOTE_ADDR'];
+
+
+            (new LogModel())->save([
+                "method" => "OUT:".$_SERVER['REQUEST_METHOD'],
+                "url" => $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'],
+                "user_agent" => $_SERVER['HTTP_USER_AGENT'] ?? '',
+                "body" => DB::ref()->real_escape_string((string) $output),
+                "session" => '',
+                "ip" => $ip
+            ]);
+
+            /*
+             * END LOGGING AREA
+             * */
+
             if ($output->isError() && $output->isPretty()) {
                 if (file_exists(PROJECT_VIEWS_DIR . '/errors/fux.php')) {
                     view("errors/fux", ["errorMessage" => $output->getMessage()]);
@@ -220,37 +248,34 @@ class Router
         return $params;
     }
 
+    function getCurrentMatchingRoute()
+    {
+        $validHttpRoutes = $this->routes[strtolower($this->request->requestMethod)];
+
+        $validRoute = null;
+
+        //Cerco su tutte le routes valide se ce n'è una che matcha con il request uri attuale
+        $pureRequestUri = strtok($this->request->requestUri, "?");
+        foreach ($validHttpRoutes as $route) {
+            if ($route->route === $pureRequestUri) {
+                $validRoute = $route;
+                break;
+            }
+            //Nuovo sistema
+            $params = $this->match($route->route, $pureRequestUri);
+            if ($params !== false) {
+                $this->request->setParams($params);
+                $validRoute = $route;
+                break;
+            }
+        }
+
+        return $validRoute;
+    }
+
     function __destruct()
     {
         $this->resolve();
-    }
-}
-
-
-/**
- * La classe route deve fornire una interfaccia per il router e deve contenere al suo interno:
- * - route come string
- * - il metodo da eseguire quando viene richiamata
- * - una lista di middleware da utilizzare come filtri della richiesta HTTP
- */
-class Route
-{
-    public $route = "/";
-    public $closure = null;
-    public $method = "get";
-    public $middleware = [];
-
-    public function __construct($httpMethod, $route, $closure)
-    {
-        $this->route = $route;
-        $this->method = $httpMethod;
-        if (is_callable($closure)) $this->closure = $closure;
-    }
-
-    public function middleware(IMiddleware $middleware)
-    {
-        $this->middleware[] = $middleware;
-        return $this;
     }
 }
 

@@ -18,6 +18,17 @@ class FuxException extends \Exception implements IFuxException
     }
 
     /**
+     * Create a FuxException with a generic Exception Instance
+     *
+     * @param \Exception $e
+     *
+     * @return FuxException
+    */
+    public static function fromException(\Exception $e){
+        return new FuxException(false, $e->getMessage(), $e->getCode(), $e->getPrevious());
+    }
+
+    /**
      * Report the exception.
      *
      * @return void

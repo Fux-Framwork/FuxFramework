@@ -25,7 +25,7 @@ $__FUX_SERVICE_ARE_BOOTSTRAPPED = false;
 function bootstrapServiceProviders()
 {
     global $__FUX_SERVICE_ARE_BOOTSTRAPPED;
-    $files = rglob(__DIR__ . "/../../services/*.php");
+    $files = rglob(__DIR__ . "/../../service/*.php");
     foreach ($files as $fileName) {
         include_once $fileName;
     }
@@ -166,6 +166,9 @@ function assetExternalOnce($assetURL, $type)
     return '';
 }
 
+/**
+ * @param string $css language=CSS
+ */
 function addCssToHead($css)
 {
     $css = str_replace("\n", "", $css);
@@ -189,7 +192,7 @@ function importJSXComponent($publicPath)
     global $__FUX_INCLUDED_JSX_COMPONENTS;
     if (in_array($publicPath, $__FUX_INCLUDED_JSX_COMPONENTS)) return;
     $__FUX_INCLUDED_JSX_COMPONENTS[] = $publicPath;
-    return file_get_contents(PROJECT_ROOT_DIR . "/public/$publicPath");
+    return file_get_contents(PROJECT_ROOT_DIR . "/public/$publicPath") . "\n";
 }
 
 function redirect($route)
@@ -256,31 +259,71 @@ function sanitize_object(&$object)
     });
 }
 
+function sxss($str)
+{
+    return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
+}
+
+function sxss_object($obj)
+{
+    $copy = $obj;
+    array_walk_recursive($copy, function (&$leaf) {
+        if (is_string($leaf))
+            $leaf = sxss($leaf);
+    });
+    return $copy;
+}
+
 function db_escape_string($str)
 {
     return DB::ref()->real_escape_string($str);
 }
 
-function send_email($to, $sub, $mes, $from)
+/**
+ * Invia una email tramite protocollo SMTP
+ *
+ * @param string $to L'email del destinatario
+ * @param string $subject Oggetto dell'email
+ * @param string $message Contenuto dell'email
+ * @param string $fromName Il nome "testuale" del mittente
+ * @param string[] $bccList Lista di email messe in blind-carbon-copy (Utile per invio email massivi)
+ *
+ * @return bool
+ * @throws Exception
+ */
+function send_email($to, $subject, $message, $fromName, $bccList = [])
 {
     $mail = new PHPMailer;
     $mail->isSMTP();
-    $mail->SMTPDebug = 0;
-    $mail->Host = 'mail.example.it';
-    $mail->Port = 25;
+    $mail->SMTPDebug = SMTP::DEBUG_OFF;
+    $mail->Host = SMTP_HOST;
+    $mail->Port = SMTP_PORT;
     $mail->SMTPAuth = true;
-    $mail->Username = 'noreply@example.it';
-    $mail->Password = '';
-    $mail->setFrom('noreply@example.it', $from);
-    $mail->addReplyTo('', '');
+    $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+    $mail->Username = SMTP_USERNAME;
+    $mail->Password = SMTP_PASSWORD;
+    $mail->setFrom(SMTP_FROM, $fromName);
+    if ($bccList && is_array($bccList)) {
+        foreach ($bccList as $bccAddress) {
+            $mail->addBCC($bccAddress);
+        }
+    }
+    $mail->addReplyTo(SMTP_FROM, $fromName);
     $mail->addAddress($to);
-    $mail->Subject = $sub;
+    $mail->Subject = $subject;
     $mail->isHTML(true);
     $mail->CharSet = 'UTF-8';
     $mail->Encoding = 'base64';
-    $mail->Body = $mes;
+    $mail->Body = $message;
+    /*$mail->SMTPOptions = array(
+        'ssl' => array(
+            'verify_peer' => false,
+            'verify_peer_name' => false,
+            'allow_self_signed' => true
+        )
+    );*/
     if (!$mail->send()) {
-        echo 'Mailer Error: ' . $mail->ErrorInfo;
+        //echo 'Mailer Error: ' . $mail->ErrorInfo;
         return false;
     } else {
         //echo 'The email message was sent.';
@@ -438,4 +481,24 @@ function my_array_unique($array)
     foreach ($array as $k => $v)
         $a[$v] = true;
     return array_keys($a);
+}
+
+
+function plural_string($n, $single, $more, $zero = null)
+{
+    if ($n == 0 && $zero) {
+        return $zero;
+    }
+    if ($n > 1) {
+        return $more;
+    }
+    return $single;
+}
+
+
+function print_r_pre($value)
+{
+    echo "<pre>";
+    print_r($value);
+    echo "</pre>";
 }
