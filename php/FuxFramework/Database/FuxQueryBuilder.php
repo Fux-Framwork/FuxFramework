@@ -555,13 +555,13 @@ class FuxQueryBuilder
         return $q;
     }
 
-    public function first()
+    public function first($as = null)
     {
         $sql = $this->result();
         $q = DB::ref()->query($sql) or die(DB::ref()->error . "SQL: $sql");
         if ($row = $q->fetch_assoc()) {
             $q->free_result();
-            return $row;
+            return $as ? new $as($row) : $row;
         }
         return null;
     }

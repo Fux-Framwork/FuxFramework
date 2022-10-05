@@ -211,7 +211,7 @@ class ModelCollection implements \Countable, \IteratorAggregate, \JsonSerializab
         return count($this->data) == 0;
     }
 
-    public function count()
+    public function count(): int
     {
         return count($this->data);
     }
@@ -221,12 +221,12 @@ class ModelCollection implements \Countable, \IteratorAggregate, \JsonSerializab
         return new \ArrayIterator($this->data);
     }
 
-    public function jsonSerialize()
+    public function jsonSerialize(): mixed
     {
         return $this->data;
     }
 
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         return isset($this->data[$offset]);
     }

@@ -148,7 +148,13 @@ class Pagination
     {
         $lastItem = end($items);
         if (!$lastItem) return null;
-        $fields = array_intersect_key($lastItem, array_flip($this->cursorFields));
+
+        $fields = [];
+        foreach ($this->cursorFields as $cursorField) {
+            $cursorField = array_reverse(explode('.', $cursorField));
+            $key = (($cursorField[1] ?? '') ? "$cursorField[1]." : '') . $cursorField[0];
+            $fields[$key] = $lastItem[$cursorField[0]];
+        }
 
         /** @var CursorInterface $cursor */
         $cursor = new $this->cursorClass($fields, CursorInterface::TYPE_NEXT);
@@ -167,7 +173,12 @@ class Pagination
     {
         if (!$items) return null;
 
-        $fields = array_intersect_key($items[0], array_flip($this->cursorFields));
+        $fields = [];
+        foreach ($this->cursorFields as $cursorField) {
+            $cursorField = array_reverse(explode('.', $cursorField));
+            $key = (($cursorField[1] ?? '') ? "$cursorField[1]." : '') . $cursorField[0];
+            $fields[$key] = $items[0][$cursorField[0]];
+        }
 
         /** @var CursorInterface $cursor */
         $cursor = new $this->cursorClass($fields, CursorInterface::TYPE_PREV);

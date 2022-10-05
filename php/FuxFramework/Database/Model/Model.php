@@ -306,6 +306,7 @@ class Model implements \JsonSerializable, \ArrayAccess, \IteratorAggregate
         foreach ($rows as $r) {
             $list[] = new static($r);
         }
+        if (!$list) return null;
         return new ModelCollection($list);
     }
 
@@ -473,7 +474,7 @@ class Model implements \JsonSerializable, \ArrayAccess, \IteratorAggregate
      *
      * @return mixed
      */
-    public function getAggregateWhere(string $aggregateFunction, string $aggregateFieldName, $where = '1')
+    public static function getAggregateWhere(string $aggregateFunction, string $aggregateFieldName, $where = '1')
     {
         $qb = self::queryBuilder();
         $qb->select("$aggregateFunction($aggregateFieldName) as $aggregateFieldName");
@@ -502,7 +503,7 @@ class Model implements \JsonSerializable, \ArrayAccess, \IteratorAggregate
      *
      * @return mixed
      */
-    public function listAggregateGroupsWhere(string $aggregateFunction, string $aggregateFieldName, $groupFieldName, $where = '1')
+    public static function listAggregateGroupsWhere(string $aggregateFunction, string $aggregateFieldName, $groupFieldName, $where = '1')
     {
         if (!is_array($groupFieldName)) $groupFieldName = [$groupFieldName];
         $qb = self::queryBuilder();
@@ -539,12 +540,12 @@ class Model implements \JsonSerializable, \ArrayAccess, \IteratorAggregate
         return json_encode($this);
     }
 
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         return isset($this->data[$offset]);
     }
 
-    public function offsetGet($offset)
+    public function offsetGet($offset): mixed
     {
         return $this->data[$offset];
     }
