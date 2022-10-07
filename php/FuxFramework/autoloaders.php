@@ -1,5 +1,23 @@
 <?php
 
+
+
+/* ##########################
+ * Autoloader per i file nella cartella \App
+ * ########################## */
+spl_autoload_register(function ($className) {
+    if (strpos($className, "App\\") !== false) {
+        $relativeClassPath = str_replace("App/", "", str_replace("\\", "/", $className));
+        $filePath = __DIR__ . "/../../app/$relativeClassPath.php";
+        if (file_exists($filePath)) {
+            include_once $filePath;
+        } else {
+            throw new Exception("FuxAutoloaderException: Cannot autoload app class $className");
+        }
+    }
+});
+
+
 /* ##########################
  * Autoloader per i middlewares
  * ########################## */
@@ -33,7 +51,8 @@ spl_autoload_register(function ($className) {
         } else {
             throw new Exception("FuxAutoloaderException: Cannot autoload app class $className. File $filePath doesn't exists.");
         }
-    }if (strpos($className, "Controller")) { //Controller con scansione della directory "controllers"
+    }
+    if (strpos($className, "Controller")) { //Controller con scansione della directory "controllers"
         $classNameParts = explode("\\", $className);
         $className = end($classNameParts); //Rimuovo la parte di namespacing
         $files = $_CONTROLLERS_FILESYSTEM_TREE ?? rglob(PROJECT_ROOT_DIR . "/controllers/*.php");
@@ -81,21 +100,6 @@ spl_autoload_register(function ($className) {
     }
 });
 
-
-/* ##########################
- * Autoloader per i file nella cartella \App
- * ########################## */
-spl_autoload_register(function ($className) {
-    if (strpos($className, "App\\") !== false) {
-        $relativeClassPath = str_replace("App/", "", str_replace("\\", "/", $className));
-        $filePath = __DIR__ . "/../../app/$relativeClassPath.php";
-        if (file_exists($filePath)) {
-            include_once $filePath;
-        } else {
-            throw new Exception("FuxAutoloaderException: Cannot autoload app class $className");
-        }
-    }
-});
 
 
 /* ##########################
