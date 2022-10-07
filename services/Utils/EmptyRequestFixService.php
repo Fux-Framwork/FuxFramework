@@ -1,8 +1,6 @@
 <?php
 
-/**
- * @description: Interfaccia gestire l'autenticazione degli admin del sistema, effettuare il logo logout e sapere chi è attualmente loggato
- * */
+
 class EmptyRequestFixService extends FuxServiceProvider implements IServiceProvider
 {
     public static function bootstrap(){ /* Do nothing */ }

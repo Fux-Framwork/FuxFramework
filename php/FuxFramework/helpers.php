@@ -25,7 +25,7 @@ $__FUX_SERVICE_ARE_BOOTSTRAPPED = false;
 function bootstrapServiceProviders()
 {
     global $__FUX_SERVICE_ARE_BOOTSTRAPPED;
-    $files = rglob(__DIR__ . "/../../service/*.php");
+    $files = rglob(PROJECT_ROOT_DIR . "/services/*.php");
     foreach ($files as $fileName) {
         include_once $fileName;
     }
@@ -36,13 +36,6 @@ function bootstrapServiceProviders()
                 $implementations = class_implements($className);
                 if (isset($implementations['IServiceProvider'])) {
                     $className::bootstrap();
-                    /*(new LogModel())->save([
-                        "method" => "SERVICE BS",
-                        "url" => (new Request())->requestUri,
-                        "body" => "$className",
-                        "session" => DB::ref()->real_escape_string(json_encode($_SESSION ?? [])),
-                        "ip" => isset($_SERVER['HTTP_CF_CONNECTING_IP']) ? $_SERVER['HTTP_CF_CONNECTING_IP'] : $_SERVER['REMOTE_ADDR']
-                    ]);*/
                 }
             }
         }

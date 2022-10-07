@@ -9,6 +9,7 @@ header("Access-Control-Allow-Headers: Content-Type, Accept, Authorization, X-Req
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS, HEAD");
 
 include_once './php/FuxFramework/Routing/Request.php';
+include_once './php/FuxFramework/Routing/Route.php';
 include_once './php/FuxFramework/Routing/Router.php';
 include_once './php/FuxFramework/helpers.php';
 

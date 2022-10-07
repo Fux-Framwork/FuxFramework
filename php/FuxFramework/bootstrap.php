@@ -51,38 +51,8 @@ $_FUX_DEBUG_START_TIME = hrtime(true);
  * Env configuration bootstrapping
  * ########################## */
 
-
-
 bootstrapServiceProviders();
 register_shutdown_function("disposeServiceProviders");
-register_shutdown_function(function () use ($_FUX_DEBUG_START_TIME) {
-    $_FUX_DEBUG_END_TIME = hrtime(true);
-    $ip = isset($_SERVER['HTTP_CF_CONNECTING_IP']) ? $_SERVER['HTTP_CF_CONNECTING_IP'] : $_SERVER['REMOTE_ADDR'];
-    $data = $_SERVER['REQUEST_METHOD'] === 'GET' ? $_GET : $_POST;
-    // Post data / Cookies / Files
-    if (isset($data) && count($data)) {
-        if (isset($data['password'])) {
-            $data['password'] = "***HIDDEN***";
-        }
-        if (isset($data['password2'])) {
-            $data['password2'] = "***HIDDEN***";
-        }
-    }
-    try {
-        (new LogTimingModel())->save([
-            "method" => $_SERVER['REQUEST_METHOD'],
-            "url" => $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'],
-            "user_agent" => $_SERVER['HTTP_USER_AGENT'] ?? '',
-            "body" => DB::ref()->real_escape_string(json_encode($data ?? [])),
-            "session" => DB::ref()->real_escape_string(json_encode($_SESSION ?? [])),
-            "execution_time" => ($_FUX_DEBUG_END_TIME - $_FUX_DEBUG_START_TIME) / 1e+6,
-            "ip" => $ip
-        ]);
-
-    } catch (Exception $e) {
-        print_r($e->getMessage());
-    }
-});
 
 
 /* ##########################
