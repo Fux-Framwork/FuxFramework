@@ -13,9 +13,11 @@ class FuxViewComposerManager
      * @param string $viewAlias The public name of the composed view which can be used by the "view()" helper
      * @param string $viewPath The path to the view file relative to the project global "view" directory
      * @param callable $dataCallback A function which return an object that will be passed as data of the composed view
+     * @param string | null $package If it is a string, it represents the name of the Package folder. In the package folder must
+     * exists a "Views" folder that will be used as base dir to search for the viewName
     */
-    public static function register($viewAlias, $viewPath, $dataCallback){
-        self::$registeredViews[$viewAlias] = new FuxView($viewPath, $dataCallback);
+    public static function register($viewAlias, $viewPath, $dataCallback, $package = null){
+        self::$registeredViews[$viewAlias] = new FuxView($viewPath, $dataCallback, $package);
     }
 
     /**

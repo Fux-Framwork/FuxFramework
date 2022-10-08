@@ -30,5 +30,7 @@ foreach (rglob(__DIR__ . "/routes/*.php") as $filename) {
     include_once($filename);
 }
 
-
-
+/* Load packages routes file */
+foreach (rglob(__DIR__ . "/app/Packages/*/Routes/*.php") as $filename) {
+    include_once($filename);
+}

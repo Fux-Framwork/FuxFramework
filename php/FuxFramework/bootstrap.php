@@ -14,6 +14,10 @@ foreach (glob(__DIR__ . '/../../config/*.php') as $filename) {
     require_once $filename;
 }
 
+foreach (glob(__DIR__ . '/../../app/Packages/*/Config/*.php') as $filename) {
+    require_once $filename;
+}
+
 require_once __DIR__ . '/autoloaders.php';
 require_once __DIR__ . '/Service/FuxServiceProvider.php';
 require_once __DIR__ . '/Database/FuxQuery.php';

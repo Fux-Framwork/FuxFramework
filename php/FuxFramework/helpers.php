@@ -25,7 +25,7 @@ $__FUX_SERVICE_ARE_BOOTSTRAPPED = false;
 function bootstrapServiceProviders()
 {
     global $__FUX_SERVICE_ARE_BOOTSTRAPPED;
-    $files = rglob(PROJECT_ROOT_DIR . "/services/*.php");
+    $files = array_merge(rglob(PROJECT_ROOT_DIR . "/app/Packages/*/Services/*.php"), rglob(PROJECT_ROOT_DIR . "/services/*.php"));
     foreach ($files as $fileName) {
         include_once $fileName;
     }
@@ -73,7 +73,19 @@ function rglob($pattern, $flags = 0)
     return $files;
 }
 
-function view($viewName, $viewData = [])
+
+/**
+ * Dinamically incldue a view file. The passed view data will be declared variables in the view context.
+ *
+ * @param string $viewName The path of the view file (with or without php extension, without le starting "/")
+ * @param array $viewData An associative array of variables to use in the view context. Each key will be the variable
+ * name associated to the value passed.
+ * @param string | null $package If it is a string, it represents the name of the Package folder. In the package folder must
+ * exists a "Views" folder that will be used as base dir to search for the viewName
+ *
+ * @return string
+ */
+function view($viewName, $viewData = [], $package = null)
 {
     global $mysqli, $lang, $lang_id;
     //$lang = LanguageService::getCurrentLanguageCode();
@@ -83,7 +95,11 @@ function view($viewName, $viewData = [])
         ${$varName} = $value;
     }
 
-    include(__DIR__ . "/../../views/$viewName");
+    if ($package) {
+        include(PROJECT_ROOT_DIR . "/app/Packages/$package/Views/$viewName");
+    } else {
+        include(PROJECT_ROOT_DIR . "/views/$viewName");
+    }
 
     return "";
 }
@@ -94,16 +110,27 @@ function viewCompose($viewAlias, $ovverideData = [], $params = [])
     if ($fuxView) {
         return view(
             $fuxView->getPath(),
-            array_merge($fuxView->getData($params), $ovverideData)
+            array_merge($fuxView->getData($params), $ovverideData),
+            $fuxView->getPackage()
         );
     }
     return '';
 }
 
-function asset($asset)
+/**
+ * Return the absolute asset URL.
+ *
+ * @param string $asset The asset path relative to the "/public" directory (or package's "/Assets" directory)
+ * @param string | null $package If it is a string, it represents the name of the Package folder. In the package folder must
+ * exists an "Assets" folder that will be used as base dir to search for the specified asset
+ */
+function asset($asset, $package = null)
 {
     if (substr($asset, 0, 1) === "/") {
         $asset = substr($asset, 1);
+    }
+    if ($package) {
+        return PROJECT_HTTP_SCHEMA . "://" . DOMAIN_NAME . PROJECT_DIR . "/app/Packages/$package/Assets/" . $asset;
     }
     return PROJECT_HTTP_SCHEMA . "://" . DOMAIN_NAME . PROJECT_DIR . "/public/" . $asset;
 }

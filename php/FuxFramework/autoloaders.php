@@ -33,7 +33,7 @@ spl_autoload_register(function ($className) {
  * Autoloader per i file nella cartella \App
  * ########################## */
 spl_autoload_register(function ($className) {
-    if (strpos($className, "App\\") !== false && strpos($className, "App\Controllers") === false && strpos($className, "App\Models") === false) {
+    if (strpos($className, "App\\") !== false && strpos($className, "App\Controllers") === false && strpos($className, "App\Models") === false) { //Controller con namespace PSR) {
         $relativeClassPath = str_replace("App/", "", str_replace("\\", "/", $className));
         $filePath = __DIR__ . "/../../app/$relativeClassPath.php";
         if (file_exists($filePath)) {

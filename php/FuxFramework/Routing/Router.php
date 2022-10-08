@@ -14,6 +14,8 @@ class Router
 
     private $commonMiddlewares = [];
 
+    private $currentPrefix = '';
+
     private $supportedHttpMethods = array(
         "GET",
         "POST",
@@ -34,17 +36,19 @@ class Router
             $this->invalidMethodHandler();
         }
 
+        $route = $this->currentPrefix.$route;
+
         $httpMethod = strtolower($httpMethod);
 
-        $route = new Route($httpMethod, $route, $closure);
+        $routeObject = new Route($httpMethod, $route, $closure);
         if (count($this->commonMiddlewares)) {
             foreach ($this->commonMiddlewares as $m) {
-                $route->middleware($m);
+                $routeObject->middleware($m);
             }
         }
-        $this->routes[$httpMethod][] = $route;
+        $this->routes[$httpMethod][] = $routeObject;
 
-        return $route;
+        return $routeObject;
     }
 
     public function withMiddleware($middleware, $closure)
@@ -56,6 +60,14 @@ class Router
         }
         if (is_callable($closure)) $closure($this);
         $this->commonMiddlewares = [];
+    }
+
+    public function prefix($prefix, $closure)
+    {
+        $oldPrefix = $this->currentPrefix;
+        $this->currentPrefix .= $prefix;
+        if (is_callable($closure)) $closure($this);
+        $this->currentPrefix = $oldPrefix;
     }
 
     /**
