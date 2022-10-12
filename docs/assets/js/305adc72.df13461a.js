@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkdocumentation=self.webpackChunkdocumentation||[]).push([[3332],{4819:a=>{a.exports=JSON.parse('{"label":"facebook","permalink":"/FuxFramework/blog/tags/facebook","allTagsPath":"/FuxFramework/blog/tags","count":1}')}}]);
