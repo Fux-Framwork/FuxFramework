@@ -46,7 +46,7 @@ class FuxException extends \Exception implements IFuxException
      *
      * @return string | FuxResponse
      */
-    public function render($request, $exception)
+    public function render(\Fux\Request $request, \Exception $exception)
     {
         return new FuxResponse("ERROR", $exception->getMessage(), null, $this->canBePretty);
     }

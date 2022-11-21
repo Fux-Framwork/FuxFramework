@@ -92,4 +92,21 @@ class FuxResponse implements \JsonSerializable
     {
         return new FuxResponse($array["status"] ?? null, $array["message"] ?? null, $array["data"] ?? null);
     }
+
+    /**
+     * @return FuxResponse
+     */
+    public static function success($message = null, $data = null)
+    {
+        return new FuxResponse(FuxResponse::SUCCESS, $message, $data);
+    }
+
+    /**
+     * @return FuxResponse
+     */
+    public static function error($message = null, $data = null)
+    {
+        return new FuxResponse(FuxResponse::ERROR, $message, $data);
+    }
+
 }

@@ -114,6 +114,32 @@ class Request implements IRequest
         }
     }
 
+    public function file($key)
+    {
+        if (!isset($_FILES[$key])) return null;
+        $isMultiple = is_array($_FILES[$key]['tmp_name']);
+        if ($isMultiple){ //Multiple files
+            if ($_FILES[$key]['error'][0]) return null;
+        }else{
+            if ($_FILES[$key]['error']) return null;
+        }
+
+        if ($isMultiple){
+            $files = [];
+            $fileKeys = ['name','type','tmp_name','error','size'];
+            foreach($_FILES[$key]['tmp_name'] as $i => $tmp_name){
+                if (is_uploaded_file($tmp_name)){
+                    $fileData = [];
+                    foreach($fileKeys as $fk) $fileData[$fk] = $_FILES[$key][$fk][$i];
+                    $files[] = $fileData;
+                }
+            }
+            return $files;
+        }
+
+        return is_uploaded_file($_FILES[$key]['tmp_name']) ? $_FILES[$key] : null;
+    }
+
     public function setBody($body){
         $_POST = $body;
     }

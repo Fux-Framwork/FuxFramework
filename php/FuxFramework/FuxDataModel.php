@@ -25,7 +25,7 @@ namespace Fux;
  * $obj->r1Field_A = "test";
  * $obj->r2List[0]->r2Field_A = "I'm editing field A of first element of r2 List"
 */
-class FuxDataModel implements \JsonSerializable {
+class FuxDataModel implements \JsonSerializable, \ArrayAccess {
 
     protected $data = [];
 
@@ -39,12 +39,15 @@ class FuxDataModel implements \JsonSerializable {
         $this->data[$field] = $value;
     }
 
+    /**
+     * @throws \Exception
+     */
     public function __get($name)
     {
         if(isset($this->data[$name]))
             return $this->data[$name];
         else
-            throw new Exception("$name dow not exists");
+            throw new \Exception("$name dow not exists");
     }
 
     public function __toString()
@@ -55,5 +58,40 @@ class FuxDataModel implements \JsonSerializable {
     public function jsonSerialize()
     {
         return $this->data;
+    }
+
+    /**
+     * @param mixed $offset
+     * @return bool
+     */
+    public function offsetExists($offset)
+    {
+        return isset($this->data[$offset]);
+    }
+
+    /**
+     * @param mixed $offset
+     * @return mixed
+     */
+    public function offsetGet($offset)
+    {
+        return $this->data[$offset];
+    }
+
+    /**
+     * @param mixed $offset
+     * @param mixed $value
+     */
+    public function offsetSet($offset, $value)
+    {
+        $this->data[$offset] = $value;
+    }
+
+    /**
+     * @param mixed $offset
+     */
+    public function offsetUnset($offset)
+    {
+        unset($this->data[$offset]);
     }
 }

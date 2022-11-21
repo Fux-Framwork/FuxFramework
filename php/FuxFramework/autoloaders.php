@@ -39,7 +39,7 @@ spl_autoload_register(function ($className) {
         if (file_exists($filePath)) {
             include_once $filePath;
         } else {
-            throw new Exception("FuxAutoloaderException: Cannot autoload app class $className");
+            throw new Exception("FuxAutoloaderException: Cannot autoload app class $className in file path $filePath");
         }
     }
 });

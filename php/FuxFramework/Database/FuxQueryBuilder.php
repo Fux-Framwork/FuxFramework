@@ -17,6 +17,7 @@ class FuxQueryBuilder
     private $queryType = '';
     private $selectables = [];
     private $table = "";
+    private $alias = "";
     private $setClause = [];
     private $insertValues = []; // = [[0 => "fieldname", 1 => "fieldValue"]]
     private $joins = []; // => Array of ["type"=>"left", "table"=>"", "on"=>"where"]
@@ -53,6 +54,10 @@ class FuxQueryBuilder
         return $this;
     }
 
+    public function _getSelect(){
+        return $this->selectables;
+    }
+
     /**
      * @param FuxQueryBuilder | \Fux\Database\FuxQuery | FuxModel | Model |string $table
      */
@@ -61,7 +66,12 @@ class FuxQueryBuilder
         $table = self::tableRefToString($table);
         $this->table = $table;
         if ($as) $this->table .= " as $as";
+        $this->alias = $as;
         return $this;
+    }
+
+    public function _getFromAlias(){
+        return $this->alias;
     }
 
     public function delete($from, $as = null)

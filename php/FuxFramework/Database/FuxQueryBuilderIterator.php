@@ -29,4 +29,22 @@ class FuxQueryBuilderIterator
         return $data;
     }
 
+    public function iterator($chunkSize = 10){
+        $chunk = $this->next($chunkSize);
+        while ($chunk) {
+            foreach ($chunk as $item) {
+                yield $item;
+            }
+            $chunk = $this->next($chunkSize);
+        }
+    }
+
+    public function chunkIterator($chunkSize = 10){
+        while (true){
+            $chunk = $this->next($chunkSize);
+            if ($chunk) yield $chunk;
+            if (!$chunk) break;
+        }
+    }
+
 }
