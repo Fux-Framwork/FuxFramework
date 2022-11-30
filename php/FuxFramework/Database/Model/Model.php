@@ -448,7 +448,7 @@ class Model implements \JsonSerializable, \ArrayAccess, \IteratorAggregate
             return in_array($field, static::$primaryKey);
         }, ARRAY_FILTER_USE_KEY);
         $isPrimarySet = count($primaryKey) === count(static::$primaryKey);
-        $isRecordExisting = $isPrimarySet && !!self::getRecord($data);
+        $isRecordExisting = $isPrimarySet && !!self::get($data);
 
         if ($isRecordExisting) {
             return self::saveWhere($data, $primaryKey, $ignoreNullData) ? reset($primaryKey) : false;
