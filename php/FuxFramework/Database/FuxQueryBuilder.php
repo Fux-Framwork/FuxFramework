@@ -125,7 +125,7 @@ class FuxQueryBuilder
     public function value($field, $value, $valueUseColumns = false)
     {
         $field = self::getStringfiedFieldName($field);
-        $this->insertValues[] = $value === null ? [$field, null] : ($valueUseColumns ? [$field, $value] : [$field, "'$value'"]);
+        $this->insertValues[] = $value === null ? [$field, 'NULL'] : ($valueUseColumns ? [$field, $value] : [$field, "'$value'"]);
         return $this;
     }
 
