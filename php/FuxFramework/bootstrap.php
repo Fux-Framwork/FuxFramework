@@ -1,4 +1,5 @@
 <?php
+
 use Fux\DB;
 
 require_once __DIR__ . '/../../vendor/autoload.php';
@@ -34,7 +35,7 @@ require_once __DIR__ . '/FuxDataModel.php';
 require_once __DIR__ . '/Events/EventManager.php';
 
 
-if (defined("SESSION_HANDLER_TYPE") && SESSION_HANDLER_TYPE == 'mysql'){
+if (defined("SESSION_HANDLER_TYPE") && SESSION_HANDLER_TYPE == 'mysql') {
     require_once __DIR__ . '/Http/Session/MysqlSessionHandler.php';
     new \Fux\Http\Sessions\MysqlSessionHandler();
 }
@@ -73,8 +74,8 @@ $hrs = floor($mins / 60);
 $mins -= $hrs * 60;
 $offset = sprintf('%+d:%02d', $hrs * $sgn, $mins);
 
-DB::ref()->set_charset("utf8");
-DB::ref()->query("SET SESSION sql_mode = 'ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'");
-DB::ref()->query("SET time_zone='$offset'");
-
-
+if (DB_ENABLE) {
+    DB::ref()->set_charset("utf8");
+    DB::ref()->query("SET SESSION sql_mode = 'ERROR_FOR_DIVISION_BY_ZERO,NO_AUTO_CREATE_USER,NO_ENGINE_SUBSTITUTION'");
+    DB::ref()->query("SET time_zone='$offset'");
+}
