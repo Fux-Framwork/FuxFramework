@@ -1,11 +1,8 @@
 <?php
 
-class ExampleModel extends FuxModel
+class ExampleModel extends Fux\Database\Model\Model
 {
-    public function __construct()
-    {
-        $this->setTableName("table_name");
-        $this->setTableFields(["field1", "field2", "field3"]);
-        $this->setPkField("field1");
-    }
+    protected static $tableName = 'table_name';
+    protected static $tableFields = ["field1", "field2", "field3"];
+    protected static $primaryKey = ["field1"];
 }
