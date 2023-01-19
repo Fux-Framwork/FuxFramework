@@ -7,10 +7,10 @@
 */
 
 /** @MARK Domain e Hosting constants */
-//define("SERVER_PORT", false);
-//define("DOMAIN_NAME", $_SERVER['SERVER_NAME'] . (SERVER_PORT ? ":" . SERVER_PORT : ""));
-//define("PROJECT_DIR", "/subdir"); //Empty string if you want to use root directory, else you need to use a subdir
-//define("PROJECT_HTTP_SCHEMA","http");
+const SERVER_PORT = false;
+define("DOMAIN_NAME", $_SERVER['SERVER_NAME'] . (SERVER_PORT ? ":" . SERVER_PORT : ""));
+const PROJECT_DIR = "/subdir"; //Empty string if you want to use root directory, else you need to use a subdir
+const PROJECT_HTTP_SCHEMA = "http";
 
 /** @MARK Database Connection */
 //define("DB_ENABLE", false);
