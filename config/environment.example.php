@@ -23,5 +23,6 @@
 //define("SMTP_HOST", "mail.example.com");
 //define("SMTP_USERNAME", "my_username");
 //define("SMTP_PASSWORD", "my_secret_password");
+//define("SMTP_FROM", "My Application");
 //define("SMTP_FROM_ADDRESS", "noreply@example.com");
 //define("SMTP_PORT", 25);

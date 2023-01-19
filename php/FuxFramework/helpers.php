@@ -530,3 +530,23 @@ function getPackageVar($var, $package){
     $_PACKAGES_MANIFEST_FILES[$package] = $manifest;
     return $manifest[$var] ?? null;
 }
+
+
+function download($filepath, $filename, $contentType = 'application/force-download'){
+    header('Pragma: public');
+    header('Expires: 0');
+    header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+    header('Last-Modified: ' . gmdate('D, d M Y H:i:s', filemtime($filepath)) . ' GMT');
+    header("Content-Type: $contentType");
+    header("Content-Disposition: inline; filename=\"$filename\"");
+    header('Content-Transfer-Encoding: binary');
+    header('Content-Length: ' . filesize($filepath));
+    header('Connection: close');
+    readfile($filepath);
+}
+
+function sanitize_html($html)
+{
+    $ALLOWED_HTML_TAGS = ['p', 'b', 'u', 'br', 'i', 'font', 'span'];
+    return strip_tags(html_entity_decode($html), "<" . implode('><', $ALLOWED_HTML_TAGS) . ">");
+}
