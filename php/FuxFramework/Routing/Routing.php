@@ -14,12 +14,9 @@ class Routing
     public static function router()
     {
         if (!self::$router) {
+            self::$router = new Router(new Request());
             if (ENABLE_DEFAULT_CSRF_MIDDLEWARE) {
-                (new Router(new Request()))->withMiddleware([new DefaultCsrfProtectionMiddleware()], function ($router) {
-                    self::$router = $router;
-                });
-            } else {
-                self::$router = new Router(new Request());
+                self::$router->addMiddlewares([new DefaultCsrfProtectionMiddleware()]);
             }
         }
         return self::$router;
