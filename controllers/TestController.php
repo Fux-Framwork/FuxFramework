@@ -1,13 +1,16 @@
 <?php
 
+namespace App\Controllers;
+
+use Fux\Request;
 
 class TestController
 {
 
-    public static function myTestMethod(\Fux\Request $request)
+    public static function sendForm(Request $request)
     {
-        $params = $request->getQueryStringParams();
-        return view("myExampleView", ["myViewParameter" => "HelloWorld", "params" => $params]);
+        print_r_pre($request->getBody());
+        return "CURRENT CSRF = ".csrf_token()."<br>";
     }
 
 }
