@@ -14,9 +14,12 @@ class DefaultCsrfProtectionMiddleware extends FuxMiddleware
     public function handle()
     {
 
+        if ($this->isReading()) return $this->resolve();
+
         //Check if current request match one of the excluded routes the middleware is skipped
-        foreach(CSRF_EXCUDED_ROUTES as $route){
-            if ($this->request->matchRoute($route)) $this->resolve();
+        foreach (CSRF_EXCUDED_ROUTES as $route) {
+            if ($this->request->matchRoute($route)) return $this->resolve();
+
         }
 
         $token = $this->getRequestToken();
@@ -51,5 +54,10 @@ class DefaultCsrfProtectionMiddleware extends FuxMiddleware
     protected function addCsrfTokenCookie()
     {
         setcookie('XSRF-TOKEN', csrf_token(), XSRF_TOKEN_COOKIE_LIFETIME);
+    }
+
+    protected function isReading()
+    {
+        return in_array($this->request->requestMethod, ['HEAD', 'GET', 'OPTIONS']);
     }
 }

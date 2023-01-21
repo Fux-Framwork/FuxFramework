@@ -78,6 +78,13 @@ class Router
     {
         $this->commonMiddlewares = array_merge($this->commonMiddlewares, $middlewares);
     }
+    /**
+     * Get middlewares of the router
+     */
+    public function getMiddlewares()
+    {
+        return $this->commonMiddlewares;
+    }
 
     /**
      * Removes trailing forward slashes from the right of the route.
