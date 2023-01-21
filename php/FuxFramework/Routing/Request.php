@@ -4,22 +4,23 @@
 namespace Fux;
 
 include_once 'IRequest.php';
-include_once __DIR__.'/Router.php';
+include_once __DIR__ . '/Router.php';
 
 class Request implements IRequest
 {
     private $params = [];
+
     function __construct()
     {
         $this->bootstrapSelf();
     }
+
     private function bootstrapSelf()
     {
-        foreach($_SERVER as $key => $value)
-        {
+        foreach ($_SERVER as $key => $value) {
             $this->{$this->toCamelCase($key)} = $value;
         }
-        if(isset($this->requestUri)){
+        if (isset($this->requestUri)) {
             $this->requestUri = $this->formatRoute($this->requestUri);
         }
         $this->{"url"} = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
@@ -32,7 +33,7 @@ class Request implements IRequest
     private function formatRoute($route)
     {
         if (defined("PROJECT_DIR") && strlen(PROJECT_DIR)) {
-            if (substr($route,0,strlen(PROJECT_DIR)) === PROJECT_DIR) {
+            if (substr($route, 0, strlen(PROJECT_DIR)) === PROJECT_DIR) {
                 $newRoute = substr($route, strlen(PROJECT_DIR));
                 //Rimuove la dir di progetto dalla route da usare nel router
                 if ($newRoute != $route) {
@@ -41,16 +42,16 @@ class Request implements IRequest
             }
         }
         $result = rtrim($route, '/');
-        if ($result === '')
-        {
+        if ($result === '') {
             return '/';
         }
         return $result;
     }
 
-    public function matchRoute($route){
+    public function matchRoute($route)
+    {
         $router = new Router($this);
-        return $router->match($route, strtok($this->requestUri,'?'));
+        return $router->match($route, strtok($this->requestUri, '?'));
     }
 
 
@@ -59,21 +60,22 @@ class Request implements IRequest
         $result = strtolower($string);
 
         preg_match_all('/_[a-z]/', $result, $matches);
-        foreach($matches[0] as $match)
-        {
+        foreach ($matches[0] as $match) {
             $c = str_replace('_', '', strtoupper($match));
             $result = str_replace($match, $c, $result);
         }
         return $result;
     }
 
-    public function setParams($params){
-            $this->params = $params;
+    public function setParams($params)
+    {
+        $this->params = $params;
     }
 
-    public function getParams(){
+    public function getParams()
+    {
         $params = $this->params;
-        array_walk_recursive($params, function (&$value){
+        array_walk_recursive($params, function (&$value) {
             if (is_string($value)) {
                 $value = DB_ENABLE ? DB::sanitize($value) : filter_var($value, FILTER_SANITIZE_SPECIAL_CHARS);
             }
@@ -81,11 +83,12 @@ class Request implements IRequest
         return $params;
     }
 
-    public function getQueryStringParams(){
+    public function getQueryStringParams()
+    {
         $params = [];
-        if ($this->requestMethod === "GET"){
+        if ($this->requestMethod === "GET") {
             $params = $_GET;
-            array_walk_recursive($params, function (&$value){
+            array_walk_recursive($params, function (&$value) {
                 if (is_string($value)) {
                     $value = DB_ENABLE ? DB::sanitize($value) : filter_var($value, FILTER_SANITIZE_SPECIAL_CHARS);
                 }
@@ -96,12 +99,10 @@ class Request implements IRequest
 
     public function getBody()
     {
-        if($this->requestMethod === "GET")
-        {
+        if ($this->requestMethod === "GET") {
             return [];
         }
-        if ($this->requestMethod == "POST")
-        {
+        if ($this->requestMethod == "POST") {
             $body = $_POST;
             if ($_POST) {
                 array_walk_recursive($body, function (&$value) {
@@ -118,19 +119,19 @@ class Request implements IRequest
     {
         if (!isset($_FILES[$key])) return null;
         $isMultiple = is_array($_FILES[$key]['tmp_name']);
-        if ($isMultiple){ //Multiple files
+        if ($isMultiple) { //Multiple files
             if ($_FILES[$key]['error'][0]) return null;
-        }else{
+        } else {
             if ($_FILES[$key]['error']) return null;
         }
 
-        if ($isMultiple){
+        if ($isMultiple) {
             $files = [];
-            $fileKeys = ['name','type','tmp_name','error','size'];
-            foreach($_FILES[$key]['tmp_name'] as $i => $tmp_name){
-                if (is_uploaded_file($tmp_name)){
+            $fileKeys = ['name', 'type', 'tmp_name', 'error', 'size'];
+            foreach ($_FILES[$key]['tmp_name'] as $i => $tmp_name) {
+                if (is_uploaded_file($tmp_name)) {
                     $fileData = [];
-                    foreach($fileKeys as $fk) $fileData[$fk] = $_FILES[$key][$fk][$i];
+                    foreach ($fileKeys as $fk) $fileData[$fk] = $_FILES[$key][$fk][$i];
                     $files[] = $fileData;
                 }
             }
@@ -140,11 +141,25 @@ class Request implements IRequest
         return is_uploaded_file($_FILES[$key]['tmp_name']) ? $_FILES[$key] : null;
     }
 
-    public function setBody($body){
+    public function setBody($body)
+    {
         $_POST = $body;
     }
 
-    public function setMethod($method){
+    public function setMethod($method)
+    {
         $this->requestMethod = $method;
     }
+
+
+    /**
+     * Return all request headers
+     *
+     * @return array | false
+     */
+    public function headers(): array
+    {
+        return apache_request_headers();
+    }
+
 }

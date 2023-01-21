@@ -2,7 +2,9 @@
     "name": "matteo/fux-framework",
     "require": {
         "phpmailer/phpmailer": "^6.3",
-      "ext-json": "*"
+      "ext-json": "*",
+      "ext-openssl": "*",
+      "ext-mbstring": "*"
     },
     "authors": [
         {

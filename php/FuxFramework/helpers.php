@@ -524,15 +524,17 @@ function print_r_pre($value)
 }
 
 $_PACKAGES_MANIFEST_FILES = [];
-function getPackageVar($var, $package){
+function getPackageVar($var, $package)
+{
     global $_PACKAGES_MANIFEST_FILES;
-    $manifest = $_PACKAGES_MANIFEST_FILES[$package] ?? include PROJECT_ROOT_DIR."/app/Packages/$package/manifest.php";
+    $manifest = $_PACKAGES_MANIFEST_FILES[$package] ?? include PROJECT_ROOT_DIR . "/app/Packages/$package/manifest.php";
     $_PACKAGES_MANIFEST_FILES[$package] = $manifest;
     return $manifest[$var] ?? null;
 }
 
 
-function download($filepath, $filename, $contentType = 'application/force-download'){
+function download($filepath, $filename, $contentType = 'application/force-download')
+{
     header('Pragma: public');
     header('Expires: 0');
     header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
@@ -549,4 +551,19 @@ function sanitize_html($html)
 {
     $ALLOWED_HTML_TAGS = ['p', 'b', 'u', 'br', 'i', 'font', 'span'];
     return strip_tags(html_entity_decode($html), "<" . implode('><', $ALLOWED_HTML_TAGS) . ">");
+}
+
+
+/**
+ * @MARK CSRF Protection
+ */
+
+function csrf_token($force = false)
+{
+    if (!$force && isset($_SESSION['_csrf_token'])) {
+        return $_SESSION['_csrf_token'];
+    }
+    $length = 64;
+    $_SESSION['_csrf_token'] = bin2hex(random_bytes(($length - ($length % 2)) / 2));
+    return $_SESSION['_csrf_token'];
 }

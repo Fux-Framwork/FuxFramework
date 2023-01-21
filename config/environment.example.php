@@ -6,23 +6,27 @@
  * @MARK Environment variables
 */
 
+//IMPORTANT: Do not share this online!
+//Generate one APP_KEY here https://generate-random.org/laravel-key-generator?count=1
+const APP_KEY = 'Random string';
+
 /** @MARK Domain e Hosting constants */
-const SERVER_PORT = false;
-define("DOMAIN_NAME", $_SERVER['SERVER_NAME'] . (SERVER_PORT ? ":" . SERVER_PORT : ""));
-const PROJECT_DIR = "/subdir"; //Empty string if you want to use root directory, else you need to use a subdir
-const PROJECT_HTTP_SCHEMA = "http";
+//const SERVER_PORT = false;
+//define("DOMAIN_NAME", $_SERVER['SERVER_NAME'] . (SERVER_PORT ? ":" . SERVER_PORT : ""));
+//const PROJECT_DIR = "/subdir"; //Empty string if you want to use root directory, else you need to use a subdir
+//const PROJECT_HTTP_SCHEMA = "http";
 
 /** @MARK Database Connection */
-//define("DB_ENABLE", false);
-//define("DB_HOST", "localhost");
-//define("DB_USER", "root");
-//define("DB_PASSWORD", "root");
-//define("DB_DATABASE", "database_name");
+//const DB_ENABLE = false;
+//const DB_HOST = "localhost";
+//const DB_USER = "root";
+//const DB_PASSWORD = "root";
+//const DB_DATABASE = "database_name";
 
 /** @MARK Email configuration */
-//define("SMTP_HOST", "mail.example.com");
-//define("SMTP_USERNAME", "my_username");
-//define("SMTP_PASSWORD", "my_secret_password");
-//define("SMTP_FROM", "My Application");
-//define("SMTP_FROM_ADDRESS", "noreply@example.com");
-//define("SMTP_PORT", 25);
+//const SMTP_HOST = "mail.example.com";
+//const SMTP_USERNAME = "my_username";
+//const SMTP_PASSWORD = "my_secret_password";
+//const SMTP_FROM = "My Application";
+//const SMTP_FROM_ADDRESS = "noreply@example.com";
+//const SMTP_PORT = 25;
