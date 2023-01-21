@@ -14,18 +14,14 @@ class DefaultCsrfProtectionMiddleware extends FuxMiddleware
     public function handle()
     {
 
-        if ($this->isReading()) return $this->resolve();
-
-        //Check if current request match one of the excluded routes the middleware is skipped
-        foreach (CSRF_EXCUDED_ROUTES as $route) {
-            if ($this->request->matchRoute($route)) return $this->resolve();
-
-        }
-
         $token = $this->getRequestToken();
         $realToken = csrf_token();
 
-        if (is_string($realToken) && is_string($token) && hash_equals($realToken, $token)) {
+        if (
+            $this->isReading() || //Only post requests are checked
+            $this->isExcludedRoute() || //Only NOT excluded routes are checked
+            (is_string($realToken) && is_string($token) && hash_equals($realToken, $token)) //Check if token is the same
+        ) {
             if (ADD_XSRF_TOKEN_COOKIE) {
                 $this->addCsrfTokenCookie();
             }
@@ -53,11 +49,19 @@ class DefaultCsrfProtectionMiddleware extends FuxMiddleware
 
     protected function addCsrfTokenCookie()
     {
-        setcookie('XSRF-TOKEN', csrf_token(), XSRF_TOKEN_COOKIE_LIFETIME);
+        setcookie('XSRF-TOKEN', csrf_token(), time() + XSRF_TOKEN_COOKIE_LIFETIME, PROJECT_DIR);
     }
 
     protected function isReading()
     {
         return in_array($this->request->requestMethod, ['HEAD', 'GET', 'OPTIONS']);
+    }
+
+    protected function isExcludedRoute()
+    {
+        foreach (CSRF_EXCUDED_ROUTES as $route) {
+            if ($this->request->matchRoute($route)) return true;
+        }
+        return false;
     }
 }
