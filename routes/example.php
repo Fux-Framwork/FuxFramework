@@ -1,24 +1,22 @@
 <?php
 
+use Fux\FuxResponse;
 use Fux\Request;
-use Fux\Router;
 
-if (!isset($router)) $router = new Router(new Request());
-
-$router->get('/', function(Request $request){
+\Fux\Routing\Routing::router()->get('/', function (Request $request) {
     return "Welcome in FuxFramework!";
 });
 
-$router->get('/home', function(Request $request){
+\Fux\Routing\Routing::router()->get('/home', function (Request $request) {
     return TestController::myTestMethod($request);
 });
 
-
-$router->get('/error', function (){
-    return new FuxResponse("ERROR","This is an error!", null, true);
+\Fux\Routing\Routing::router()->get('/error', function () {
+    return new FuxResponse("ERROR", "This is an error!", null, true);
 });
-$router->get('/success', function (){
-    return new FuxResponse("OK","This is custom success page!", [
+
+\Fux\Routing\Routing::router()->get('/success', function () {
+    return new FuxResponse("OK", "This is custom success page!", [
         "forwardLink" => "https://google.com",
         "forwardLinkText" => "Go to Google homepage"
     ], true);

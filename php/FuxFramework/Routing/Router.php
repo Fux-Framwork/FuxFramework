@@ -71,6 +71,15 @@ class Router
     }
 
     /**
+     * Add middlewares to the router
+     * @param array $middlewares
+     */
+    public function addMiddlewares(array $middlewares): void
+    {
+        $this->commonMiddlewares = array_merge($this->commonMiddlewares, $middlewares);
+    }
+
+    /**
      * Removes trailing forward slashes from the right of the route.
      * @param route (string)
      */

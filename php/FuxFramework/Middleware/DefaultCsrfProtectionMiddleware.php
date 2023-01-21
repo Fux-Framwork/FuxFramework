@@ -13,6 +13,12 @@ class DefaultCsrfProtectionMiddleware extends FuxMiddleware
      */
     public function handle()
     {
+
+        //Check if current request match one of the excluded routes the middleware is skipped
+        foreach(CSRF_EXCUDED_ROUTES as $route){
+            if ($this->request->matchRoute($route)) $this->resolve();
+        }
+
         $token = $this->getRequestToken();
         $realToken = csrf_token();
 
