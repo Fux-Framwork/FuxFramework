@@ -2,6 +2,8 @@
 
 namespace Fux;
 
+use Fux\Middleware\IMiddleware;
+
 /**
  * La classe route deve fornire una interfaccia per il router e deve contenere al suo interno:
  * - route come string

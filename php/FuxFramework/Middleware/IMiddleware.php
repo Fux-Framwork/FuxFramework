@@ -1,6 +1,8 @@
 <?php
 
-namespace Fux;
+namespace Fux\Middleware;
+
+use Fux\Request;
 
 interface IMiddleware{
     public function handle();

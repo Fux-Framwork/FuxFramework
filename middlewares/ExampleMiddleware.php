@@ -2,7 +2,7 @@
 
 include_once(__DIR__ . "/../php/FuxFramework/Middleware/FuxMiddleware.php");
 
-use Fux\FuxMiddleware;
+use Fux\Middleware\FuxMiddleware;
 
 class ExampleMiddleware extends FuxMiddleware
 {
