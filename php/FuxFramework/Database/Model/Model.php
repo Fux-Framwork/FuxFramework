@@ -18,7 +18,7 @@ class Model implements \JsonSerializable, \ArrayAccess, \IteratorAggregate
     protected static $relationships = [];
     protected $data = [];
 
-    public function __construct($data)
+    public function __construct($data = [])
     {
         if (static::class != Model::class) {
             $this->data = array_intersect_key($data, array_flip(static::$tableFields));
