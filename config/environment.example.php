@@ -8,7 +8,7 @@
 
 //IMPORTANT: Do not share this online!
 //Generate one APP_KEY here https://generate-random.org/laravel-key-generator?count=1
-const APP_KEY = 'Random string';
+//const APP_KEY = 'Random string';
 
 /** @MARK Domain e Hosting constants */
 //const SERVER_PORT = false;

@@ -567,3 +567,8 @@ function csrf_token($force = false)
     $_SESSION['_csrf_token'] = bin2hex(random_bytes(($length - ($length % 2)) / 2));
     return $_SESSION['_csrf_token'];
 }
+
+
+function app_key(){
+    return base64_decode(APP_KEY);
+}

@@ -19,7 +19,7 @@ class Encrypter
      */
     private static function encrypter()
     {
-        if (!self::$encrypter) self::$encrypter = new EncrypterManager(APP_KEY, DEFAULT_CIPHER);
+        if (!self::$encrypter) self::$encrypter = new EncrypterManager(app_key(), DEFAULT_CIPHER);
         return self::$encrypter;
     }
 
