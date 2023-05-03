@@ -321,6 +321,7 @@ class Model implements \JsonSerializable, \ArrayAccess, \IteratorAggregate
      * ]
      *
      * @return bool
+     * @throws Exception
      */
     public static function delete($primaryKey)
     {
@@ -328,6 +329,7 @@ class Model implements \JsonSerializable, \ArrayAccess, \IteratorAggregate
         $qb->delete(static::$tableName);
 
         if (!is_array($primaryKey)) $primaryKey = [static::$primaryKey[0] => $primaryKey];
+        if (!$primaryKey) throw new Exception("The primary key passed is empty or not valid");
         foreach ($primaryKey as $f => $v) $qb->where($f, $v);
 
         $qb->execute() or die(DB::ref()->error . $qb->result());
