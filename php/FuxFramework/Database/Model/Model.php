@@ -527,6 +527,19 @@ class Model implements \JsonSerializable, \ArrayAccess, \IteratorAggregate
 
 
     /**
+     * Remove all fields from the model that are not in the given list
+     *
+     * @param string[] $allowedFields A list of allowed fields to keep in the model instance
+     *
+     * @return static
+    */
+    public function filterFields($allowedFields = []){
+        $this->data = array_intersect_key($this->data, array_flip($allowedFields));
+        return $this;
+    }
+
+
+    /**
      * @return mixed
      */
     public function jsonSerialize()
