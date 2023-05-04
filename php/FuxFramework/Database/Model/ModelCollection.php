@@ -2,9 +2,6 @@
 
 namespace Fux\Database\Model;
 
-
-use function Clue\StreamFilter\fun;
-
 class ModelCollection implements \Countable, \IteratorAggregate, \JsonSerializable, \ArrayAccess
 {
 
@@ -32,7 +29,8 @@ class ModelCollection implements \Countable, \IteratorAggregate, \JsonSerializab
         return $this->data;
     }
 
-    public function toArray(){
+    public function toArray()
+    {
         return $this->getData();
     }
 
@@ -46,7 +44,7 @@ class ModelCollection implements \Countable, \IteratorAggregate, \JsonSerializab
     {
         if ($collection instanceof ModelCollection) {
             $this->data = array_merge($this->data, $collection->getData());
-        }else{
+        } else {
             $this->data = array_merge($this->data, $collection);
         }
     }
@@ -164,9 +162,9 @@ class ModelCollection implements \Countable, \IteratorAggregate, \JsonSerializab
      */
     public function filter($test)
     {
-        $items = array_filter($this->data, function ($m, $i) use ($test) {
+        $items = array_values(array_filter($this->data, function ($m, $i) use ($test) {
             return $test($m, $i, $this);
-        });
+        }, ARRAY_FILTER_USE_BOTH));
         return new ModelCollection($items);
     }
 
@@ -192,6 +190,32 @@ class ModelCollection implements \Countable, \IteratorAggregate, \JsonSerializab
     }
 
 
+    /**
+     * Apply array_reduce function to items in the collection
+     *
+     * @param callable $callback
+     * Signature is <pre>callback ( mixed $carry , mixed $item ) : mixed</pre>
+     * @param mixed $initial
+     *
+     * @return mixed
+     */
+    public function reduce($callback, $initial)
+    {
+        return array_reduce($this->data, $callback, $initial);
+    }
+
+
+    /**
+     * Apply array_map function to items in the collection
+     *
+     * @param callable $callback
+     *
+     * @return array
+     */
+    public function map($callback)
+    {
+        return array_map($callback, $this->data);
+    }
 
 
     /**
@@ -203,7 +227,7 @@ class ModelCollection implements \Countable, \IteratorAggregate, \JsonSerializab
      */
     public function column($columnName)
     {
-        return array_map(fn($row) => $row[$columnName],$this->getData());
+        return array_map(fn($row) => $row[$columnName], $this->getData());
     }
 
     public function isEmpty()
