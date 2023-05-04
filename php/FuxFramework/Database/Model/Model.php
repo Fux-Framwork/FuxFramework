@@ -539,6 +539,21 @@ class Model implements \JsonSerializable, \ArrayAccess, \IteratorAggregate
     }
 
 
+
+    /**
+     * Remove all fields in the model that are in the given list
+     *
+     * @param string[] $fields A list of fields to remove from the model instance
+     *
+     * @return static
+    */
+    public function dropFields($fields = []){
+        $remainingFields = array_diff(static::$tableFields, $fields);
+        $this->data = array_intersect_key($this->data, array_flip($remainingFields));
+        return $this;
+    }
+
+
     /**
      * @return mixed
      */
