@@ -4,6 +4,8 @@ namespace Fux\Database\Model;
 
 use Exception;
 use Fux\DB;
+use Fux\Exceptions\FuxException;
+use Fux\FuxDataModel;
 use SqlWhere;
 use Traversable;
 
@@ -80,9 +82,34 @@ class Model implements \JsonSerializable, \ArrayAccess, \IteratorAggregate
         return $this->data;
     }
 
-    public function commit($ignoreNullData = true)
+    public function commit($sanitize = false, $ignoreNullData = true)
     {
-        return self::save($this->data, $ignoreNullData);
+        $data = $this->data;
+        if ($sanitize) sanitize_object($data);
+        return self::save($data, $ignoreNullData);
+    }
+
+    /**
+     * Delete the record in the table represented by the current instance primary key values
+     *
+     * @return bool
+     */
+    public function deleteSelf()
+    {
+        return self::delete($this->getPrimaryKeyValue());
+    }
+
+    /**
+     * Create a clone of the current model instance, returning a new PHP object
+     *
+     * @param bool $resetPrimaryKeys
+     *
+     * @return static
+     */
+    public function mock($resetPrimaryKeys = true)
+    {
+        $data = $resetPrimaryKeys ? array_diff_key($this->data, array_flip($this::getPrimaryKey())) : $this->data;
+        return new static($data);
     }
 
     public function refetch()
@@ -283,7 +310,7 @@ class Model implements \JsonSerializable, \ArrayAccess, \IteratorAggregate
      *
      * @param string[] $neededFields The fields that have to be selected
      *
-     * @return ModelCollection
+     * @return ModelCollection | static[]
      */
     public static function listWhere($where, $neededFields = null)
     {
@@ -329,6 +356,7 @@ class Model implements \JsonSerializable, \ArrayAccess, \IteratorAggregate
         $qb->delete(static::$tableName);
 
         if (!is_array($primaryKey)) $primaryKey = [static::$primaryKey[0] => $primaryKey];
+        $primaryKey = array_intersect_key($primaryKey, array_flip(static::$primaryKey));
         if (!$primaryKey) throw new Exception("The primary key passed is empty or not valid");
         foreach ($primaryKey as $f => $v) $qb->where($f, $v);
 
@@ -431,6 +459,8 @@ class Model implements \JsonSerializable, \ArrayAccess, \IteratorAggregate
     public static function save($data, $ignoreNullData = true, $ignoreClause = false, $saveMode = null)
     {
 
+        if ($data instanceof FuxDataModel) $data = $data->toArray();
+
         if ($ignoreNullData) {
             foreach ($data as $field => $value) {
                 if ($value === null) {
@@ -532,12 +562,11 @@ class Model implements \JsonSerializable, \ArrayAccess, \IteratorAggregate
      * @param string[] $allowedFields A list of allowed fields to keep in the model instance
      *
      * @return static
-    */
+     */
     public function filterFields($allowedFields = []){
         $this->data = array_intersect_key($this->data, array_flip($allowedFields));
         return $this;
     }
-
 
 
     /**
@@ -546,7 +575,7 @@ class Model implements \JsonSerializable, \ArrayAccess, \IteratorAggregate
      * @param string[] $fields A list of fields to remove from the model instance
      *
      * @return static
-    */
+     */
     public function dropFields($fields = []){
         $remainingFields = array_diff(static::$tableFields, $fields);
         $this->data = array_intersect_key($this->data, array_flip($remainingFields));

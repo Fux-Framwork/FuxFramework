@@ -24,18 +24,21 @@ namespace Fux;
  * $obj = new R1DataModel($r1Data, $r2List);
  * $obj->r1Field_A = "test";
  * $obj->r2List[0]->r2Field_A = "I'm editing field A of first element of r2 List"
-*/
-class FuxDataModel implements \JsonSerializable, \ArrayAccess {
+ */
+class FuxDataModel implements \JsonSerializable, \ArrayAccess
+{
 
-    protected $data = [];
+    protected array $data = [];
 
-    public function setMultipleField($dataList){
-        foreach ($dataList as $key => $value){
+    public function setMultipleField($dataList)
+    {
+        foreach ($dataList as $key => $value) {
             $this->data[$key] = $value;
         }
     }
 
-    public function setField($field, $value){
+    public function setField($field, $value)
+    {
         $this->data[$field] = $value;
     }
 
@@ -44,7 +47,7 @@ class FuxDataModel implements \JsonSerializable, \ArrayAccess {
      */
     public function __get($name)
     {
-        if(isset($this->data[$name]))
+        if (array_key_exists($name, $this->data))
             return $this->data[$name];
         else
             throw new \Exception("$name dow not exists");
@@ -56,6 +59,11 @@ class FuxDataModel implements \JsonSerializable, \ArrayAccess {
     }
 
     public function jsonSerialize()
+    {
+        return $this->data;
+    }
+
+    public function toArray(): array
     {
         return $this->data;
     }
