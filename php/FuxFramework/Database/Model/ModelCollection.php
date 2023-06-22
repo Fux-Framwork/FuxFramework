@@ -134,6 +134,23 @@ class ModelCollection implements \Countable, \IteratorAggregate, \JsonSerializab
         return !!$this->find($test);
     }
 
+    /**
+     * Sort collection rows using a user-defined comparison function
+     *
+     * @param callable $callback <p>
+     * The comparison function must return an integer less than, equal to, or
+     * greater than zero if the first argument is considered to be
+     * respectively less than, equal to, or greater than the second.
+     * </p>
+     *
+     * @return self
+     */
+    public function sort($callback)
+    {
+        usort($this->data, $callback);
+        return $this;
+    }
+
 
     /**
      * Reverse the order of the instances in the collection
