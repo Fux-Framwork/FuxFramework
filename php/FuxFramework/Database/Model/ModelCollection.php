@@ -236,6 +236,21 @@ class ModelCollection implements \Countable, \IteratorAggregate, \JsonSerializab
 
 
     /**
+     * Apply a function to each item of the collection, the returned value of the callback will be used to replace the
+     * item in the collection
+     *
+     * @param callable $callback
+     *
+     * @return self
+     */
+    public function apply($callback)
+    {
+        $this->data = array_map($callback, $this->data);
+        return $this;
+    }
+
+
+    /**
      * Return an array where each i-th element is the value of the wanted column of the i-th element in the collection
      *
      * @param string $columnName
