@@ -82,7 +82,7 @@ class Model implements \JsonSerializable, \ArrayAccess, \IteratorAggregate
         return $this->data;
     }
 
-    public function commit($sanitize = false, $ignoreNullData = true)
+    public function commit($sanitize = true, $ignoreNullData = true)
     {
         $data = $this->data;
         if ($sanitize) sanitize_object($data);
