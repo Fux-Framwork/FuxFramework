@@ -254,4 +254,20 @@ class Relationship
         $var = "t" . (count($this->getAnchestorRelationships()) + 1);
         return $this;
     }
+
+    /**
+     * Adds a new property with name $key to the instance this relationship belongs to. This new property will contain
+     * the result of the database fetching based on relationship settings.
+     *
+     * @param string $key The name of the new property that will be created
+     * @param bool $hasMore Weather the expand action could return multiple records of the "end model"
+    */
+    public function expand(string $key, bool $hasMore = false):void
+    {
+        if ($hasMore) {
+            $this->baseInstance->{$key} = $this->all($this->endModel);
+        } else {
+            $this->baseInstance->{$key} = $this->get($this->endModel);
+        }
+    }
 }
