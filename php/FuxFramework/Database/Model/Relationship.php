@@ -152,10 +152,12 @@ class Relationship
      */
     public function get($as = null)
     {
+        $v = $this->queryBuilder()->first();
+        if (!$v) return null;
         if ($as) {
-            return new $as($this->queryBuilder()->first());
+            return new $as($v);
         }
-        return new Model($this->queryBuilder()->first());
+        return new Model($v);
     }
 
 
@@ -261,13 +263,14 @@ class Relationship
      *
      * @param string $key The name of the new property that will be created
      * @param bool $hasMore Weather the expand action could return multiple records of the "end model"
-    */
-    public function expand(string $key, bool $hasMore = false):void
+     */
+    public function expand(string $key, bool $hasMore = false): ModelCollection | Model
     {
         if ($hasMore) {
             $this->baseInstance->{$key} = $this->all($this->endModel);
         } else {
             $this->baseInstance->{$key} = $this->get($this->endModel);
         }
+        return $this->baseInstance->{$key};
     }
 }
