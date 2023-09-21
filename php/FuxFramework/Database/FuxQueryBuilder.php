@@ -31,6 +31,8 @@ class FuxQueryBuilder
     private $fieldStringificationDisabled = false;
     private $useIgnoreClause = false;
 
+    private $onDuplicateKeyUpdateFields = [];
+
     public function select($data)
     {
         $this->queryType = self::TYPE_SELECT;
@@ -54,7 +56,8 @@ class FuxQueryBuilder
         return $this;
     }
 
-    public function _getSelect(){
+    public function _getSelect()
+    {
         return $this->selectables;
     }
 
@@ -70,7 +73,8 @@ class FuxQueryBuilder
         return $this;
     }
 
-    public function _getFromAlias(){
+    public function _getFromAlias()
+    {
         return $this->alias;
     }
 
@@ -134,6 +138,19 @@ class FuxQueryBuilder
         foreach ($data as $k => $v) {
             $this->value($k, $v, $valueUseColumns);
         }
+        return $this;
+    }
+
+    /**
+     * Wether to add "ON DUPLICATE KEY UPDATE" clause to the INSERT query
+     *
+     * @param array $fields = [
+     *     "{field_name}" => "{new_field_value}"
+     * ]
+     */
+    public function onDuplicateKeyUpdate($fields)
+    {
+        $this->onDuplicateKeyUpdateFields = $fields;
         return $this;
     }
 
@@ -263,7 +280,7 @@ class FuxQueryBuilder
     public function whereBetween($field, $from, $to)
     {
         $field = self::getStringfiedFieldName($field);
-        $this->whereClause[] = "$field BETWEEN $from AND $to";
+        $this->whereClause[] = "$field BETWEEN '$from' AND '$to'";
         return $this;
     }
 
@@ -274,10 +291,29 @@ class FuxQueryBuilder
         return $this;
     }
 
+
+    public function whereInClause($field, FuxQueryBuilder|string $clause)
+    {
+        if ($clause instanceof FuxQueryBuilder) {
+            $clause = $clause->result();
+        }
+        $this->whereClause[] = "$field IN ($clause)";
+        return $this;
+    }
+
     public function whereNotIn($field, $values)
     {
         $field = self::getStringfiedFieldName($field);
         $this->whereClause[] = "$field NOT IN ('" . implode("','", $values) . "')";
+        return $this;
+    }
+
+    public function whereNotInClause($field, FuxQueryBuilder|string $clause)
+    {
+        if ($clause instanceof FuxQueryBuilder) {
+            $clause = $clause->result();
+        }
+        $this->whereClause[] = "$field NOT IN ($clause)";
         return $this;
     }
 
@@ -427,6 +463,7 @@ class FuxQueryBuilder
         }
         return $query;
     }
+
     private function _getInsertFieldsValueParts()
     {
         $query = [];
@@ -475,6 +512,11 @@ class FuxQueryBuilder
         $query = array_merge($query, $this->_getInsertFieldsNameParts());
         $query[] = "VALUES";
         $query = array_merge($query, $this->_getInsertFieldsValueParts());
+
+        if ($this->onDuplicateKeyUpdateFields) {
+            $query[] = " ON DUPLICATE KEY UPDATE ";
+            $query[] = implode(", ", array_map(fn($f) => "$f = " . $this->onDuplicateKeyUpdateFields[$f], array_keys($this->onDuplicateKeyUpdateFields)));
+        }
 
         return $query;
     }
@@ -545,8 +587,8 @@ class FuxQueryBuilder
 
         if ($this->returnFoundRows && $returnFetchAll) {
             $results = DB::multiQuery([$sql, "SELECT FOUND_ROWS() as total"]) or die(DB::ref()->error . "SQL: $sql");
-            if ($as){
-                foreach($results[0] as &$r) $r = new $as($r);
+            if ($as) {
+                foreach ($results[0] as &$r) $r = new $as($r);
             }
             return [
                 'rows' => $results[0],
@@ -557,8 +599,8 @@ class FuxQueryBuilder
         $q = DB::ref()->query($sql) or die(DB::ref()->error . "SQL: $sql");
         if ($returnFetchAll && $this->queryType === self::TYPE_SELECT) {
             $rows = $q->fetch_all(MYSQLI_ASSOC);
-            if ($as){
-                foreach($rows as &$r) $r = new $as($r);
+            if ($as) {
+                foreach ($rows as &$r) $r = new $as($r);
             }
             return $rows;
         }
@@ -605,7 +647,7 @@ class FuxQueryBuilder
             return $table->getTableName();
         } elseif ($table instanceof Database\FuxQuery) {
             return "(" . $table . ")";
-        } elseif(class_exists($table)){
+        } elseif (class_exists($table)) {
             return $table::getTableName();
         }
         return $table;
