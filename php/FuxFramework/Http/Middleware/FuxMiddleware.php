@@ -1,9 +1,8 @@
 <?php
 
 
-namespace Fux\Middleware;
+namespace Fux\Http\Middleware;
 
-use Fux\Middleware\IMiddleware;
 use Fux\Request;
 
 include_once __DIR__.'/../Routing/Request.php';

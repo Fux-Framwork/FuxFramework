@@ -1,6 +1,6 @@
 <?php
 
-namespace Fux\Middleware;
+namespace Fux\Http\Middleware;
 
 use Fux\Exceptions\FuxException;
 use Fux\Security\Encryption\Encrypter;
