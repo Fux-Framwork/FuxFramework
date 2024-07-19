@@ -2,7 +2,7 @@
 
 namespace Fux;
 
-include_once __DIR__ . '/../Middleware/IMiddleware.php';
+include_once __DIR__ . '/../Http/Middleware/IMiddleware.php';
 include_once 'Request.php';
 
 class Router

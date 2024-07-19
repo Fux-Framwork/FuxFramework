@@ -4,7 +4,7 @@ use Fux\DB;
 
 require_once __DIR__ . '/../../vendor/autoload.php';
 require_once __DIR__ . '/Http/FuxResponse.php';
-require_once __DIR__ . '/Middleware/FuxMiddleware.php';
+require_once __DIR__ . '/Http/Middleware/FuxMiddleware.php';
 require_once __DIR__ . '/Events/EventManager.php';
 require_once __DIR__ . '/Exceptions/IFuxException.php';
 require_once __DIR__ . '/Exceptions/FuxException.php';
