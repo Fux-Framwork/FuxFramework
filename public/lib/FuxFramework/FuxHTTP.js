@@ -77,5 +77,23 @@ var FuxHTTP = {
     },
     post: function (url, params, resolveMode, rejectMode) {
         return FuxHTTP.doRequest('POST', url, params, resolveMode, rejectMode);
+    },
+    createFormDataFromObject: function (object){
+        const formData = new FormData();
+        const populateFormData = function(baseFormData, obj, subKeyStr = ''){
+            for(let i in obj){
+                let value          = obj[i];
+                let subKeyStrTrans = subKeyStr ? subKeyStr + '[' + i + ']' : i;
+
+                if(typeof(value) === 'string' || typeof(value) === 'number'){
+                    baseFormData.append(subKeyStrTrans, value);
+                } else if(typeof(value) === 'object'){
+                    populateFormData(baseFormData, value, subKeyStrTrans);
+                }
+            }
+        }
+
+        populateFormData(formData, object);
+        return formData;
     }
 };
