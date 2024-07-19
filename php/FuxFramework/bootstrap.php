@@ -11,6 +11,10 @@ require_once __DIR__ . '/Exceptions/FuxException.php';
 require_once __DIR__ . '/Exceptions/Handler.php';
 require_once __DIR__ . '/helpers.php';
 
+foreach (glob(__DIR__ . '/../../app/Packages/*/Helpers/*.php') as $filename) {
+    require_once $filename;
+}
+
 foreach (glob(__DIR__ . '/../../config/*.php') as $filename) {
     require_once $filename;
 }
