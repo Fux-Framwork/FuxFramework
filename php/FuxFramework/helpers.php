@@ -135,6 +135,18 @@ function asset($asset, $package = null)
     return PROJECT_HTTP_SCHEMA . "://" . DOMAIN_NAME . PROJECT_DIR . "/public/" . $asset;
 }
 
+/**
+ * Returns the absolute URL of an asset from its path starting from the project root
+ *
+ * @param string $filePath the asset path starting from the project root dir
+ *
+ * @return string the asset URL
+ */
+function pathToAssetUrl($filePath): string
+{
+    $publicRelativeDir = str_replace(PROJECT_ROOT_DIR . "/public", "", $filePath);
+    return asset($publicRelativeDir);
+}
 
 $__FUX_INCLUDED_ASSETS = [];
 function assetOnce($asset, $type)
@@ -569,6 +581,7 @@ function csrf_token($force = false)
 }
 
 
-function app_key(){
+function app_key()
+{
     return base64_decode(APP_KEY);
 }
