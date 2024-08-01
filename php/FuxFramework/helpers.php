@@ -161,6 +161,7 @@ function assetUrlToPath(string $assetUrl): string
     return PROJECT_ROOT_DIR.$path;
 }
 
+
 $__FUX_INCLUDED_ASSETS = [];
 function assetOnce($asset, $type)
 {
