@@ -148,6 +148,19 @@ function pathToAssetUrl($filePath): string
     return asset($publicRelativeDir);
 }
 
+/**
+ * Returns the path of a file starting from the project root from the asset URL
+ *
+ * @param string $assetUrl the asset URL
+ *
+ * @return string the asset URL
+ */
+function assetUrlToPath(string $assetUrl): string
+{
+    $path = str_replace(routeFullUrl(''), '', $assetUrl);
+    return PROJECT_ROOT_DIR.$path;
+}
+
 $__FUX_INCLUDED_ASSETS = [];
 function assetOnce($asset, $type)
 {
