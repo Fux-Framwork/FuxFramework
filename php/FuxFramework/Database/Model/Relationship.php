@@ -278,7 +278,7 @@ class Relationship
     {
 
         $anchestors = $this->getAnchestorRelationships();
-        $baseInstance = $anchestors[0]->baseInstance;
+        $baseInstance = $anchestors[0]->baseInstance ?? $this->baseInstance;
 
         if ($hasMore) {
             $results = $this->all($this->endModel, $qbModifier);
