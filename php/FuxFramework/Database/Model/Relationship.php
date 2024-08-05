@@ -147,12 +147,16 @@ class Relationship
      * Perform a select query resolving the whole anchestor relationships in a multi-join select query
      *
      * @param string | Model $as If set an instance of $as::class will be returned
+     * @param callable | null $qbModifier A function that returns a modified version of the query builder used to resolve relationship
      *
      * @return Model | null
      */
-    public function get($as = null)
+    public function get($as = null, callable $qbModifier = null)
     {
-        $v = $this->queryBuilder()->first();
+        $qb = $this->queryBuilder();
+        if ($qbModifier) $qb = call_user_func($qbModifier, $qb);
+        $v = $qb->first();
+
         if (!$v) return null;
         if ($as) {
             return new $as($v);
@@ -166,12 +170,15 @@ class Relationship
      * one to many or many to many relationships
      *
      * @param string | Model $as If set a collection of instance of $as::class will be returned
+     * @param callable | null $qbModifier A function that returns a modified version of the query builder used to resolve relationship
      *
      * @return ModelCollection | null
      */
-    public function all($as = null)
+    public function all($as = null, callable $qbModifier = null)
     {
-        $data = $this->queryBuilder()->execute();
+        $qb = $this->queryBuilder();
+        if ($qbModifier) $qb = call_user_func($qbModifier, $qb);
+        $data = $qb->execute();
         foreach ($data as &$d) {
             $d = $as ? new $as($d) : new Model($d);
         }
@@ -258,19 +265,27 @@ class Relationship
     }
 
     /**
-     * Adds a new property with name $key to the instance this relationship belongs to. This new property will contain
+     * Adds a new property with name $key to the "base" instance of the relationship chain. This new property will contain
      * the result of the database fetching based on relationship settings.
      *
      * @param string $key The name of the new property that will be created
      * @param bool $hasMore Weather the expand action could return multiple records of the "end model"
+     * @param callable | null $qbModifier A function that returns a modified version of the query builder used to resolve relationship
+     *
+     * @return Model | ModelCollection | null
      */
-    public function expand(string $key, bool $hasMore = false): ModelCollection | Model
+    public function expand(string $key, bool $hasMore = false, callable $qbModifier = null): ModelCollection|Model|null
     {
+
+        $anchestors = $this->getAnchestorRelationships();
+        $baseInstance = $anchestors[0]->baseInstance;
+
         if ($hasMore) {
-            $this->baseInstance->{$key} = $this->all($this->endModel);
+            $results = $this->all($this->endModel, $qbModifier);
+            $baseInstance->{$key} = $results;
         } else {
-            $this->baseInstance->{$key} = $this->get($this->endModel);
+            $baseInstance->{$key} = $this->get($this->endModel, $qbModifier);
         }
-        return $this->baseInstance->{$key};
+        return $baseInstance->{$key};
     }
 }
