@@ -17,14 +17,15 @@ class DefaultCsrfProtectionMiddleware extends FuxMiddleware
         $token = $this->getRequestToken();
         $realToken = csrf_token();
 
+        if (ADD_XSRF_TOKEN_COOKIE) {
+            $this->addCsrfTokenCookie();
+        }
+
         if (
             $this->isReading() || //Only post requests are checked
             $this->isExcludedRoute() || //Only NOT excluded routes are checked
             (is_string($realToken) && is_string($token) && hash_equals($realToken, $token)) //Check if token is the same
         ) {
-            if (ADD_XSRF_TOKEN_COOKIE) {
-                $this->addCsrfTokenCookie();
-            }
             return $this->resolve();
         }
 
