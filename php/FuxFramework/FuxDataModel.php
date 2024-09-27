@@ -58,7 +58,7 @@ class FuxDataModel implements \JsonSerializable, \ArrayAccess
         return json_encode($this->data);
     }
 
-    public function jsonSerialize()
+    public function jsonSerialize(): mixed
     {
         return $this->data;
     }
@@ -72,7 +72,7 @@ class FuxDataModel implements \JsonSerializable, \ArrayAccess
      * @param mixed $offset
      * @return bool
      */
-    public function offsetExists($offset)
+    public function offsetExists($offset): vool
     {
         return isset($this->data[$offset]);
     }
@@ -81,7 +81,7 @@ class FuxDataModel implements \JsonSerializable, \ArrayAccess
      * @param mixed $offset
      * @return mixed
      */
-    public function offsetGet($offset)
+    public function offsetGet($offset): mixed
     {
         return $this->data[$offset];
     }
@@ -90,7 +90,7 @@ class FuxDataModel implements \JsonSerializable, \ArrayAccess
      * @param mixed $offset
      * @param mixed $value
      */
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
         $this->data[$offset] = $value;
     }
@@ -98,7 +98,7 @@ class FuxDataModel implements \JsonSerializable, \ArrayAccess
     /**
      * @param mixed $offset
      */
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         unset($this->data[$offset]);
     }

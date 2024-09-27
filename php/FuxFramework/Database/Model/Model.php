@@ -24,7 +24,7 @@ class Model implements \JsonSerializable, \ArrayAccess, \IteratorAggregate
     {
         if (static::class != Model::class) {
             $this->data = array_intersect_key($data, array_flip(static::$tableFields));
-        }else{
+        } else {
             $this->data = $data;
         }
     }
@@ -563,7 +563,8 @@ class Model implements \JsonSerializable, \ArrayAccess, \IteratorAggregate
      *
      * @return static
      */
-    public function filterFields($allowedFields = []){
+    public function filterFields($allowedFields = [])
+    {
         $this->data = array_intersect_key($this->data, array_flip($allowedFields));
         return $this;
     }
@@ -576,7 +577,8 @@ class Model implements \JsonSerializable, \ArrayAccess, \IteratorAggregate
      *
      * @return static
      */
-    public function dropFields($fields = []){
+    public function dropFields($fields = [])
+    {
         $remainingFields = array_diff(static::$tableFields, $fields);
         $this->data = array_intersect_key($this->data, array_flip($remainingFields));
         return $this;
@@ -586,7 +588,7 @@ class Model implements \JsonSerializable, \ArrayAccess, \IteratorAggregate
     /**
      * @return mixed
      */
-    public function jsonSerialize()
+    public function jsonSerialize(): mixed
     {
         return $this->data;
     }
@@ -609,17 +611,17 @@ class Model implements \JsonSerializable, \ArrayAccess, \IteratorAggregate
         return $this->data[$offset];
     }
 
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value): void
     {
-        return $this->data[$offset] = $value;
+        $this->data[$offset] = $value;
     }
 
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
         unset($this->data[$offset]);
     }
 
-    public function getIterator()
+    public function getIterator(): Traversable
     {
         return new \ArrayIterator($this->data);
     }
