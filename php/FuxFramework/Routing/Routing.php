@@ -15,9 +15,9 @@ class Routing
     {
         if (!self::$router) {
             self::$router = new Router(new Request());
-            if (ENABLE_DEFAULT_CSRF_MIDDLEWARE) {
-                self::$router->addMiddlewares([new DefaultCsrfProtectionMiddleware()]);
-            }
+        }
+        if (ENABLE_DEFAULT_CSRF_MIDDLEWARE) {
+            self::$router->addMiddlewares([new DefaultCsrfProtectionMiddleware()]);
         }
         return self::$router;
     }
