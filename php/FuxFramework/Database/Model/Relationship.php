@@ -145,11 +145,11 @@ class Relationship
 
     /**
      * Perform a select query resolving the whole anchestor relationships in a multi-join select query
-     *
-     * @param string | Model $as If set an instance of $as::class will be returned
+     * @template T
+     * @param string | class-string<T> $as If set an instance of $as::class will be returned
      * @param callable | null $qbModifier A function that returns a modified version of the query builder used to resolve relationship
      *
-     * @return Model | null
+     * @return Model | T | null
      */
     public function get($as = null, callable $qbModifier = null)
     {
@@ -168,11 +168,11 @@ class Relationship
     /**
      * Perform a select query resolving the whole anchestor relationships in a multi-join select query. Used for
      * one to many or many to many relationships
-     *
-     * @param string | Model $as If set a collection of instance of $as::class will be returned
+     * @template T
+     * @param string | class-string<T> $as If set a collection of instance of $as::class will be returned
      * @param callable | null $qbModifier A function that returns a modified version of the query builder used to resolve relationship
      *
-     * @return ModelCollection | null
+     * @return ModelCollection<T> | null
      */
     public function all($as = null, callable $qbModifier = null)
     {

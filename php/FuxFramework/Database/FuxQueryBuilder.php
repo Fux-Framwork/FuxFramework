@@ -31,6 +31,7 @@ class FuxQueryBuilder
     private $fieldStringificationDisabled = false;
     private $useIgnoreClause = false;
 
+    private $forUpdate = false;
     private $onDuplicateKeyUpdateFields = [];
 
     public function select($data)
@@ -558,7 +559,9 @@ class FuxQueryBuilder
         $query = array_merge($query, $this->_getHavingParts());
         $query = array_merge($query, $this->_getOrderByParts());
         $query = array_merge($query, $this->_getLimitParts());
-
+        if ($this->forUpdate) {
+            $query[] = "FOR UPDATE";
+        }
         return $query;
     }
 
@@ -581,6 +584,15 @@ class FuxQueryBuilder
         return new Database\FuxQuery(join(' ', $query));
     }
 
+    /**
+     * Return the query result
+     *
+     * @param bool $returnFetchAll
+     * @template T
+     * @param class-string<T> | null $as
+     *
+     * @return T[] | array | bool
+     */
     public function execute($returnFetchAll = true, $as = null)
     {
         $sql = $this->result();
@@ -604,9 +616,23 @@ class FuxQueryBuilder
             }
             return $rows;
         }
+
+        if ($this->queryType == self::TYPE_UPDATE) {
+            return DB::ref()->affected_rows || DB::ref()->errno == 0;
+        }
+
         return $q;
     }
 
+
+    /**
+     * Return the first result set item
+     *
+     * @template T
+     * @param class-string<T> | null $as
+     *
+     * @return T | array
+     */
     public function first($as = null)
     {
         $sql = $this->result();
@@ -651,6 +677,17 @@ class FuxQueryBuilder
             return $table::getTableName();
         }
         return $table;
+    }
+
+    public function isForUpdate(): bool
+    {
+        return $this->forUpdate;
+    }
+
+    public function forUpdate(bool $forUpdate): self
+    {
+        $this->forUpdate = $forUpdate;
+        return $this;
     }
 }
 
